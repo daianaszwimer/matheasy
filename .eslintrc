@@ -1,6 +1,12 @@
 {
   "extends": ["@remix-run/eslint-config", "@remix-run/eslint-config/node"],
   "rules": {
-    "semi": "error"
+    "semi": "error",
+    "object-curly-spacing": ["error", "always"],
+    "no-trailing-spaces": "error",
+    "react/jsx-indent": [2, 2],
+    "quotes": ["error", "double"],
+    "indent": ["error", 2],
+    "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1 }]
   }
 }
