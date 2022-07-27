@@ -10,7 +10,7 @@
     "ts": "tsc --project ./tsconfig.json"
   },
   "dependencies": {
-    "@remix-run/node": "^1.6.2",
+    "@remix-run/node": "^1.6.3",
     "@remix-run/react": "^1.6.2",
     "@remix-run/vercel": "^1.6.2",
     "@vercel/node": "^1.15.2",
