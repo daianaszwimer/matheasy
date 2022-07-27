@@ -25,7 +25,7 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Typecheck
-        run: yarn typecheck
+        run: yarn ts
 
       - name: Lint
-        run: yarn lint
+        run: yarn eslint
