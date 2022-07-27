@@ -19,6 +19,8 @@ It is generally recommended to use a Git repository, because future commits will
 
 To run your Remix app locally, make sure your project's local dependencies are installed:
 
+### Important: Copy `.dev-env` and change the name to `.env`
+
 ```sh
 npm install
 ```

@@ -1,27 +1,39 @@
-import { Form, useLoaderData, useTransition } from "@remix-run/react";
+import { Form, useActionData, useTransition } from "@remix-run/react";
 import { json } from "@remix-run/node";
-import type { LoaderFunction } from "@remix-run/node";
+import type {  ActionFunction } from "@remix-run/node";
 
-interface LoaderData {
-  result: string | undefined;
+interface ActionData {
+  result?: string;
+  error?: string;
 }
 
-export const loader: LoaderFunction = async ({ request }) => {
-  const url = new URL(request.url);
-  const problem = url.searchParams.get("problem");
-  let result;
-  if (problem !== null) {
-    // todo: llamar a la api aca
-    result = "21";
+export const action: ActionFunction = async({ request }) => {
+  const body = await request.formData();
+  try {
+    const response = await fetch(`${process.env.API_URL}/math-translation`, {
+      method: "POST",
+      body: JSON.stringify({ text: body.get("problem") }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    const result = await response.json();
+    return json<ActionData>({
+      result
+    });
+  } catch(error) {
+    console.log(error);
+    return json<ActionData>({
+      error: "Ups! Algo fallo, intentalo nuevamente"
+    });
   }
-  return json<LoaderData>({
-    result
-  });
 };
+
+// todo: handlear error
 
 export default function Index() {
   const transition = useTransition();
-  const data = useLoaderData();
+  const data = useActionData();
 
   return (
     <div className="bg-gray-900">
@@ -29,7 +41,7 @@ export default function Index() {
         <h1 className="text-3xl font-bold text-white text-center">
           Ingresa el enunciado de matemática
         </h1>
-        <Form method="get" className="" action="/">
+        <Form method="post" className="">
           <div className="flex-col h-full w-full">
             <div className="relative rounded-xl overflow-auto">
               <label htmlFor="problem" className="sr-only">
@@ -39,6 +51,7 @@ export default function Index() {
                 disabled={transition.state === "submitting"}
                 id="problem"
                 name="problem"
+                required
                 placeholder="¿Cuánto es 5 más 2?"
                 className="w-full resize block w-full px-4 py-3 rounded-md border-0 text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
               />
@@ -55,7 +68,7 @@ export default function Index() {
             </div>
           </div>
         </Form>
-        {!!data.result && (
+        {!!data?.result && (
           <div className="text-white font-medium space-y-2">
             <h2 className="text-3xl font-bold">El resultado es:</h2>
             <p className="text-xl font-bold">{data.result}</p>
