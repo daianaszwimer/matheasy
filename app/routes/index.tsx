@@ -29,8 +29,6 @@ export const action: ActionFunction = async({ request }) => {
   }
 };
 
-// todo: handlear error
-
 export default function Index() {
   const transition = useTransition();
   const data = useActionData();
@@ -72,6 +70,11 @@ export default function Index() {
           <div className="text-white font-medium space-y-2">
             <h2 className="text-3xl font-bold">El resultado es:</h2>
             <p className="text-xl font-bold">{data.result}</p>
+          </div>
+        )}
+        {!!data?.error && (
+          <div className="text-white font-medium space-y-2">
+            <p className="text-xl font-bold">{data.error}</p>
           </div>
         )}
       </div>
