@@ -31,7 +31,7 @@ export const action: ActionFunction = async({ request }) => {
 
 export default function Index() {
   const transition = useTransition();
-  const data = useActionData()
+  const data = useActionData();
 
   return (
     <div className="bg-gray-900">
