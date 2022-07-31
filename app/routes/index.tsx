@@ -19,7 +19,7 @@ export const action: ActionFunction = async({ request }) => {
     });
     const result = await response.json();
     return json<ActionData>({
-      result
+      result: result.result
     });
   } catch(error) {
     console.log(error);
