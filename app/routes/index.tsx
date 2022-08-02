@@ -17,6 +17,7 @@ export const action: ActionFunction = async({ request }) => {
         "Content-Type": "application/json"
       }
     });
+    console.log("testing change");
     const result = await response.json();
     if (result.error) {
       return json<ActionData>({
