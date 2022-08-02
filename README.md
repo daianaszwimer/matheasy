@@ -3,7 +3,7 @@
 - [Remix Docs](https://remix.run/docs)
 
 ## URL
-https://mateasy-frontend.vercel.app/
+https://matheasy.vercel.app/
 
 ## Development
 
