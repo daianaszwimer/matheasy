@@ -2,14 +2,16 @@ import { Form, useActionData, useTransition } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type {  ActionFunction } from "@remix-run/node";
 import icon from "~/assets/icon.png";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styles from "katex/dist/katex.min.css";
 import Latex from "react-latex-next";
+
+type MathStep = {option: string, equationOption: string}
 
 interface ActionData {
   result?: string;
   error?: string;
-  steps?: { option: string, equationOption: string}[],
+  steps?: MathStep[],
   suggestions?: string[]
 }
 
@@ -42,7 +44,8 @@ export const action: ActionFunction = async({ request }) => {
     let [steps, suggestions] = await Promise.all([
       fetch(`${process.env.PROFEBOT_API}/exercise-resolution`, {
         method: "POST",
-        body: JSON.stringify({ exercise: result.result }),
+        // todo: matheasy me va a retornar el exercise tag en algun momento, por ahora esta hardcodeada
+        body: JSON.stringify({ exercise: result.result, exerciseTag: "Equation" }),
         headers: {
           "Content-Type": "application/json"
         }
@@ -55,15 +58,13 @@ export const action: ActionFunction = async({ request }) => {
         }
       })
     ]);
-    let [steps_, suggestions_] = await Promise.all([
-      steps.json() as Promise<{ option: string, equationOption: string}[]>,
-      suggestions.json() as Promise<string[]>,
-    ]);
-    console.log(steps, suggestions, "----");
+    let suggestions_ = await suggestions.json();
+    let steps_ = await steps.json();
     return json<ActionData>({
       result: result.result,
-      steps: steps_,
-      suggestions: suggestions_,
+      // hardcodeado porque por ahora solo llega un step entonces para que se luzca mas
+      steps: [...steps_, ...steps_] as MathStep[],
+      suggestions: suggestions_ as string[],
     });
   } catch(error) {
     console.log(error);
@@ -81,14 +82,14 @@ export default function Index() {
   const [step, setStep] = useState<Steps>("first");
   const [stepByStep, setStepByStep] = useState<number>(0);
   // todo: scrollear al siguiente step cuando se toca el boton
-  const offerSuggestions = step === "steps" && stepByStep > 0 &&stepByStep === data?.steps?.length - 1;
+  const offerSuggestions = step === "steps" && stepByStep > 0 && stepByStep === data?.steps?.length - 1;
   function nextStep() {
     if (offerSuggestions) {
       // estoy en el ultimo step, voy a suggestions
       setStep("suggestions");
       return;
     }
-    setStepByStep(prev => prev++);
+    setStepByStep(prev => prev + 1);
   }
 
   return (
@@ -139,7 +140,10 @@ export default function Index() {
         {!!data?.result &&
           <button
             className="rounded-lg text-white font-bold p-4 bg-indigo-500"
-            onClick={() => setStep("steps")}
+            onClick={() => {
+              setStep("steps");
+              setStepByStep(0);
+            }}
           >
             Ver el paso a paso de la resolución
           </button>
@@ -147,85 +151,50 @@ export default function Index() {
         {/* timeline */}
         {step !== "first" && <>
           <div className="container mx-auto w-full h-full relative">
-            <div
-              className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
-              <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
-                <h1
-                  className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">1</h1>
-              </div>
-              <div className="flex">
-                <div className="bg-white rounded-lg shadow-xl px-6 py-4">
-                  <h3 className="mb-3 font-bold text-gray-800 text-xl">Lorem Ipsum</h3>
-                  <p className="text-sm leading-snug tracking-wide text-gray-900">Lorem Ipsum is simply
-                    dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard
-                    dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to
-                    make a type specimen book.</p>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
-              <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
-                <h1
-                  className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">2</h1>
-              </div>
-              {stepByStep < 2 && <>
-                <button
-                  className="flex blur peer"
-                  onClick={() => setStepByStep(2)}
-                >
-                  <div className="bg-white rounded-lg shadow-xl px-6 py-4">
-                    <h3 className="mb-3 font-bold text-gray-800 text-xl">Lorem Ipsum</h3>
-                    <p className="text-sm leading-snug tracking-wide text-gray-900">Lorem Ipsum is simply
-                      dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard
-                      dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to
-                      make a type specimen book.</p>
+            {data?.steps.map((s: MathStep, index: number) => {
+              console.log(stepByStep, index);
+              if (stepByStep < index) {
+                return (
+                  <div key={`${s.option} ${index}`}
+                    className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
+                    <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
+                      <h1
+                        className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">{index + 1}</h1>
+                    </div>
+                    <button
+                      className="w-full flex w-full blur"
+                      onClick={nextStep}
+                    >
+                      <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
+                        <h3 className="mb-3 font-bold text-gray-800 text-xl">{s.option}</h3>
+                        <p className="text-sm leading-snug tracking-wide text-gray-900"><Latex>{`$${s.equationOption}$`}</Latex></p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={nextStep}
+                      className="absolute rounded-lg text-white font-bold p-4 bg-indigo-500"
+                      style={{ left: "calc(50% - 60px)" }}>
+                      Siguiente paso
+                    </button>
                   </div>
-                </button>
-                <button
-                  onClick={() => setStepByStep(2)}
-                  className="peer-hover:animate-bounce hover:animate-bounce absolute rounded-lg text-white font-bold p-4 bg-indigo-500"
-                  style={{ left: "calc(50% - 60px)" }}>
-                  Siguiente paso
-                </button>
-              </>
+                );
               }
-              {stepByStep >= 2 && <>
-                <div className="flex">
-                  <div className="bg-white rounded-lg shadow-xl px-6 py-4">
-                    <h3 className="mb-3 font-bold text-gray-800 text-xl">Lorem Ipsum</h3>
-                    <p className="text-sm leading-snug tracking-wide text-gray-900">Lorem Ipsum is simply
-                      dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard
-                      dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to
-                      make a type specimen book.</p>
+              return (
+                <div key={`${s.option} ${index}`}
+                  className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
+                  <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
+                    <h1
+                      className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">{index + 1}</h1>
+                  </div>
+                  <div className="w-full flex">
+                    <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
+                      <h3 className="mb-3 font-bold text-gray-800 text-xl">{s.option}</h3>
+                      <p className="text-sm leading-snug tracking-wide text-gray-900"><Latex>{`$${s.equationOption}$`}</Latex></p>
+                    </div>
                   </div>
                 </div>
-              </>
-              }
-            </div>
-
-            <div
-              className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
-              <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
-                <h1
-                  className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">3</h1>
-              </div>
-              <button className="flex blur peer">
-                <div className="bg-white rounded-lg shadow-xl px-6 py-4">
-                  <h3 className="mb-3 font-bold text-gray-800 text-xl">Lorem Ipsum</h3>
-                  <p className="text-sm leading-snug tracking-wide text-gray-900">Lorem Ipsum is simply
-                    dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard
-                    dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to
-                    make a type specimen book.</p>
-                </div>
-              </button>
-              <button
-                className="peer-hover:animate-bounce hover:animate-bounce absolute rounded-lg text-white font-bold p-4 bg-indigo-500"
-                style={{ left: "calc(50% - 60px)" }}>
-                Siguiente paso
-              </button>
-            </div>
+              );
+            })}
           </div>
           {offerSuggestions &&
             <button
