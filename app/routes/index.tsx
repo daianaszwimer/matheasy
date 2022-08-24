@@ -227,12 +227,14 @@ export default function Index() {
               </button>
             </div>
           </div>
-          <button
-            className="rounded-lg text-white font-bold p-4 bg-indigo-500"
-            onClick={() => setStep("suggestions")}
-          >
-            Ver ejercicios parecidos
-          </button>
+          {offerSuggestions &&
+            <button
+              className="rounded-lg text-white font-bold p-4 bg-indigo-500"
+              onClick={() => setStep("suggestions")}
+            >
+              Ver ejercicios parecidos
+            </button>
+          }
         </>
         }
         {step === "suggestions" && <div>Sugerencias</div>}
