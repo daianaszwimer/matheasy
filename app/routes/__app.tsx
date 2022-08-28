@@ -17,6 +17,7 @@ export default function App() {
         <ul className="flex gap-6 px-3">
           <li className="flex"><Link className="p-4" to="/">Inicio</Link></li>
           <li className="flex"><Link className="p-4" to="/faq">Preguntas Frecuentes</Link></li>
+          <li className="flex"><Link className="p-4" to="/history">Historial de Enunciados</Link></li>
         </ul>
       </nav>
       <main className="min-h-[calc(100vh_-_32px_-_16px_-_16px_-_56px)] space-y-6 flex-col pt-10 p-5 sm:max-w-2xl sm:mx-auto">
