@@ -242,7 +242,7 @@ export default function Index() {
       }
       {step === "suggestions" && <div>Sugerencias</div>}
       {!!data?.result && <button
-        className="rounded-lg font-bold p-4 bg-indigo-500 flex flex-row gap-2"
+        className="rounded-lg text-sm p-3 bg-teal-600 flex flex-row gap-2 items-center"
         onClick={async () => {
           const link = `${url}?text=${encodeURI(data?.text || "")}`;
           if ("clipboard" in navigator) {
@@ -254,7 +254,7 @@ export default function Index() {
           }
         }}
       >
-        <img src={linkIcon} alt="" className="w-5"/>
+        <img src={linkIcon} alt="" className="w-4"/>
         {hasLinkCopied ? "Copiado!" : "Copia el link al ejercicio y compartilo!"}
       </button>}
     </>
