@@ -42,9 +42,10 @@ export const loader: LoaderFunction = async ({
 export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
   try {
+    const text = body.get("problem") as string;
     const mathExpression = await fetch(`${process.env.API_URL}/math-translation`, {
       method: "POST",
-      body: JSON.stringify({ text: body.get("problem") }),
+      body: JSON.stringify({ text }),
       headers: {
         "Content-Type": "application/json"
       }
@@ -52,7 +53,7 @@ export const action: ActionFunction = async({ request }) => {
     const result = await mathExpression.json();
     if (result.error || result.result === "") {
       return json<ActionData>({
-        error: "Ups! No puedo entender ese enunciado. Probá con otro"
+        error: "Ups! No puedo entender ese enunciado. Probá con otro",
       });
     }
     let [steps, suggestions] = await Promise.all([
@@ -79,7 +80,7 @@ export const action: ActionFunction = async({ request }) => {
       // hardcodeado porque por ahora solo llega un step entonces para que se luzca mas
       steps: [...steps_, ...steps_] as MathStep[],
       suggestions: suggestions_ as string[],
-      text: body.get("problem") as string || ""
+      text
     });
   } catch(error) {
     console.log(error);
@@ -111,6 +112,20 @@ export default function Index() {
   useEffect(() => {
     setHasLinkCopied(false);
   }, [data?.result]);
+
+  useEffect(() => {
+    if (!data?.text) return;
+    let history = JSON.parse(localStorage.getItem("ejercicios") || "[]");
+    // me aseguro que hayan como mucho 5 enunciados
+    // todo: si el elemento ya existe guardar duplicado o moverlo de lugar al ultimo?
+    if (history.length < 5) {
+      history.push(data?.text);
+    } else {
+      history.shift();
+      history.push(data?.text);
+    }
+    localStorage.setItem("ejercicios", JSON.stringify(history));
+  }, [data?.text]);
 
   return (
     <>
