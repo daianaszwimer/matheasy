@@ -1,10 +1,10 @@
-import { Form, useActionData, useTransition } from "@remix-run/react";
+import { Form, useActionData, useLoaderData, useTransition } from "@remix-run/react";
 import { json } from "@remix-run/node";
-import type {  ActionFunction } from "@remix-run/node";
-import icon from "~/assets/icon.png";
-import { useState } from "react";
+import type {  ActionFunction , LoaderFunction } from "@remix-run/node";
+import { useEffect, useState } from "react";
 import styles from "katex/dist/katex.min.css";
 import Latex from "react-latex-next";
+import linkIcon from "~/assets/link.svg";
 
 type MathStep = {option: string, equationOption: string}
 
@@ -13,6 +13,12 @@ interface ActionData {
   error?: string;
   steps?: MathStep[],
   suggestions?: string[]
+  text?: string;
+}
+
+interface LoaderData {
+  defaultText?: string;
+  url: string;
 }
 
 export function links() {
@@ -25,6 +31,14 @@ export function links() {
   ];
 }
 
+export const loader: LoaderFunction = async ({
+  request,
+}) => {
+  const url = new URL(request.url);
+  const defaultText = decodeURI(url.searchParams.get("text") || "");
+  return json<LoaderData>({ defaultText, url: process.env.WEB_URL || "" });
+};
+
 export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
   try {
@@ -36,7 +50,7 @@ export const action: ActionFunction = async({ request }) => {
       }
     });
     const result = await mathExpression.json();
-    if (result.error) {
+    if (result.error || result.result === "") {
       return json<ActionData>({
         error: "Ups! No puedo entender ese enunciado. Probá con otro"
       });
@@ -65,6 +79,7 @@ export const action: ActionFunction = async({ request }) => {
       // hardcodeado porque por ahora solo llega un step entonces para que se luzca mas
       steps: [...steps_, ...steps_] as MathStep[],
       suggestions: suggestions_ as string[],
+      text: body.get("problem") as string || ""
     });
   } catch(error) {
     console.log(error);
@@ -78,11 +93,13 @@ type Steps = "first" | "steps" | "suggestions"
 
 export default function Index() {
   const transition = useTransition();
-  const data = useActionData();
+  const data = useActionData<ActionData>();
+  const { defaultText, url } = useLoaderData<LoaderData>();
+  const [hasLinkCopied, setHasLinkCopied] = useState(false);
   const [step, setStep] = useState<Steps>("first");
   const [stepByStep, setStepByStep] = useState<number>(0);
   // todo: scrollear al siguiente step cuando se toca el boton
-  const offerSuggestions = step === "steps" && stepByStep > 0 && stepByStep === data?.steps?.length - 1;
+  const offerSuggestions = step === "steps" && stepByStep > 0 && data?.steps?.length && stepByStep === data?.steps?.length - 1;
   function nextStep() {
     if (offerSuggestions) {
       // estoy en el ultimo step, voy a suggestions
@@ -91,10 +108,13 @@ export default function Index() {
     }
     setStepByStep(prev => prev + 1);
   }
+  useEffect(() => {
+    setHasLinkCopied(false);
+  }, [data?.result]);
 
   return (
     <>
-      <h1 className="text-3xl font-bold text-white text-center">
+      <h1 className="text-3xl font-bold text-center">
         Ingresá el enunciado de matemática
       </h1>
       <Form method="post" className="">
@@ -107,6 +127,7 @@ export default function Index() {
               disabled={transition.state === "submitting"}
               id="problem"
               name="problem"
+              defaultValue={defaultText}
               required
               placeholder="¿Cuánto es 5 más 2?"
               className="w-full resize block w-full px-4 py-3 rounded-md border-0 text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
@@ -116,7 +137,7 @@ export default function Index() {
             <button
               type="submit"
               onClick={() => setStep("first")}
-              className="block w-full py-3 px-4 rounded-md shadow bg-indigo-500 text-white font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+              className="block w-full py-3 px-4 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
             >
               {transition.state === "submitting"
                 ? "Calculando..."
@@ -126,19 +147,19 @@ export default function Index() {
         </div>
       </Form>
       {!!data?.result && (
-        <div className="text-white font-medium space-y-2">
+        <div className="font-medium space-y-2">
           <h2 className="text-xl font-bold">Expresión matemática:</h2>
           <p className="text-md font-bold"><Latex>{`$${data.result}$`}</Latex></p>
         </div>
       )}
       {!!data?.error && (
-        <div className="text-white font-medium space-y-2">
+        <div className="font-medium space-y-2">
           <p className="text-xl font-bold">{data.error}</p>
         </div>
       )}
       {!!data?.result &&
       <button
-        className="rounded-lg text-white font-bold p-4 bg-indigo-500"
+        className="rounded-lg font-bold p-4 bg-indigo-500"
         onClick={() => {
           setStep("steps");
           setStepByStep(0);
@@ -150,8 +171,7 @@ export default function Index() {
       {/* timeline */}
       {step !== "first" && <>
         <div className="container mx-auto w-full h-full relative">
-          {data?.steps.map((s: MathStep, index: number) => {
-            console.log(stepByStep, index);
+          {data?.steps?.map((s: MathStep, index: number) => {
             if (stepByStep < index) {
               return (
                 <div key={`${s.option} ${index}`}
@@ -171,7 +191,7 @@ export default function Index() {
                   </button>
                   <button
                     onClick={nextStep}
-                    className="absolute rounded-lg text-white font-bold p-4 bg-indigo-500"
+                    className="absolute rounded-lg font-bold p-4 bg-indigo-500"
                     style={{ left: "calc(50% - 60px)" }}>
                     Siguiente paso
                   </button>
@@ -197,7 +217,7 @@ export default function Index() {
         </div>
         {offerSuggestions &&
         <button
-          className="rounded-lg text-white font-bold p-4 bg-indigo-500"
+          className="rounded-lg font-bold p-4 bg-indigo-500"
           onClick={() => setStep("suggestions")}
         >
           Ver ejercicios parecidos
@@ -206,6 +226,22 @@ export default function Index() {
       </>
       }
       {step === "suggestions" && <div>Sugerencias</div>}
+      {!!data?.result && <button
+        className="rounded-lg font-bold p-4 bg-indigo-500 flex flex-row gap-2"
+        onClick={async () => {
+          const link = `${url}?text=${encodeURI(data?.text || "")}`;
+          if ("clipboard" in navigator) {
+            await navigator.clipboard.writeText(link);
+            setHasLinkCopied(true);
+          } else {
+            document.execCommand("copy", true, link);
+            setHasLinkCopied(true);
+          }
+        }}
+      >
+        <img src={linkIcon} alt="" className="w-5"/>
+        {hasLinkCopied ? "Copiado!" : "Copia el link al ejercicio y compartilo!"}
+      </button>}
     </>
   );
 }
