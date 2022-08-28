@@ -41,6 +41,7 @@ export const action: ActionFunction = async({ request }) => {
         error: "Ups! No puedo entender ese enunciado. Probá con otro"
       });
     }
+
     let [steps, suggestions] = await Promise.all([
       fetch(`${process.env.PROFEBOT_API}/exercise-resolution`, {
         method: "POST",
