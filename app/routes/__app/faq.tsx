@@ -7,7 +7,7 @@ let content = [
   },
   {
     question: "¿Por qué MathEasy no entiende algunos enunciados?",
-    answer: "A la hora de desarrollar MathEasy nos encontramos con ciertas limitaciones técnicas y de tiempos dado que nos dedicamos de manera part-time al proyectp"
+    answer: "A la hora de desarrollar MathEasy nos encontramos con ciertas limitaciones técnicas y de tiempos dado que nos dedicamos de manera part-time al proyecto"
   },
   {
     question: "¿Qué enunciados entiende MathEasy??",
@@ -15,7 +15,7 @@ let content = [
   },
   {
     question: "¿Cómo funciona MathEasy?",
-    answer: "MathEasy analiza los enunciados utilizando Inteligencia Artificial, predice qué tipo de enunciado es y en base a eso, se interpreta y se arma la expresión matemática."
+    answer: "MathEasy analiza los enunciados utilizando Inteligencia Artificial, predice qué tipo de enunciado es y en base a eso, se interpreta y se arma la expresión matemática"
   },
 ];
 
