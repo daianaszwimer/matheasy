@@ -43,6 +43,7 @@ export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
   try {
     const text = body.get("problem") as string;
+    console.log(process.env.API_URL, "env---aaaa---");
     const mathExpression = await fetch(`${process.env.API_URL}/math-translation`, {
       method: "POST",
       body: JSON.stringify({ text }),
@@ -50,7 +51,7 @@ export const action: ActionFunction = async({ request }) => {
         "Content-Type": "application/json"
       }
     });
-    console.log(process.env.API_URL, "env------");
+    console.log(process.env.API_URL, "env---aaaa---");
     const result = await mathExpression.json();
     if (result.error || result.result === "") {
       return json<ActionData>({
