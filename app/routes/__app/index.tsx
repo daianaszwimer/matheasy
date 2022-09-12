@@ -61,7 +61,7 @@ export const action: ActionFunction = async({ request }) => {
       fetch(`${process.env.PROFEBOT_API}/exercise-resolution`, {
         method: "POST",
         // todo: matheasy me va a retornar el exercise tag en algun momento, por ahora esta hardcodeada
-        body: JSON.stringify({ exercise: result.result.expression, exerciseTag: result.result.tag" }),
+        body: JSON.stringify({ exercise: result.result.expression, exerciseTag: result.result.tag }),
         headers: {
           "Content-Type": "application/json"
         }
