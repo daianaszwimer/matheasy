@@ -14,7 +14,7 @@ export default function App() {
   return (
     <div className="bg-gray-900 font-['Comfortaa'] text-white">
       <nav className="bg-slate-800 border-b-2 border-gray-700">
-        <ul className="flex gap-6 px-3">
+        <ul className="flex gap-6 px-3 items-center">
           <li className="flex"><Link className="p-4" to="/">Inicio</Link></li>
           <li className="flex"><Link className="p-4" to="/faq">Preguntas Frecuentes</Link></li>
           <li className="flex"><Link className="p-4" to="/history">Historial de Enunciados</Link></li>

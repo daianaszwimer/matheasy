@@ -91,7 +91,7 @@ export const action: ActionFunction = async({ request }) => {
 };
 
 type Steps = "first" | "steps" | "suggestions"
-
+// todo: si la expresion es una funcion mostrar todo en vez de paso por paso
 export default function Index() {
   const transition = useTransition();
   const data = useActionData<ActionData>();
