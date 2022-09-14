@@ -6,7 +6,7 @@ import styles from "katex/dist/katex.min.css";
 import Latex from "react-latex-next";
 import linkIcon from "~/assets/link.svg";
 
-type MathStep = {option: string, equationOption: string}
+type MathStep = {option: string, equationOption: string, equation?: string}
 
 interface ActionData {
   result?: string;
@@ -14,6 +14,7 @@ interface ActionData {
   steps?: MathStep[],
   suggestions?: string[]
   text?: string;
+  type?: string;
 }
 
 interface LoaderData {
@@ -43,7 +44,6 @@ export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
   try {
     const text = body.get("problem") as string;
-    console.log(process.env.API_URL, "env---BBBBBBaa---");
     const mathExpression = await fetch(`${process.env.API_URL}/math-translation`, {
       method: "POST",
       body: JSON.stringify({ text }),
@@ -51,25 +51,33 @@ export const action: ActionFunction = async({ request }) => {
         "Content-Type": "application/json"
       }
     });
-    console.log(process.env.API_URL, "env---aaaa---");
     const result = await mathExpression.json();
+    console.log(result);
     if (result.error || result.result === "") {
       return json<ActionData>({
         error: "Ups! No puedo entender ese enunciado. Probá con otro",
       });
     }
+
+    // todo: cuando el back mande bien el tag borrar
+    function capitalizeFirstLetter(string: string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
     let [steps, suggestions] = await Promise.all([
       fetch(`${process.env.PROFEBOT_API}/exercise-resolution`, {
         method: "POST",
-        // todo: matheasy me va a retornar el exercise tag en algun momento, por ahora esta hardcodeada
-        body: JSON.stringify({ exercise: result.result.expression, exerciseTag: result.result.tag }),
+        body: JSON.stringify({
+          exercise: result.result.expression,
+          exerciseTag: capitalizeFirstLetter(result.result.tag)
+        }),
         headers: {
           "Content-Type": "application/json"
         }
       }),
       fetch(`${process.env.PROFEBOT_API}/suggestions`, {
         method: "POST",
-        body: JSON.stringify({ exercise: result.result }),
+        body: JSON.stringify({ exercise: result.result.expression }),
         headers: {
           "Content-Type": "application/json"
         }
@@ -79,10 +87,10 @@ export const action: ActionFunction = async({ request }) => {
     let steps_ = await steps.json();
     return json<ActionData>({
       result: result.result.expression,
-      // hardcodeado porque por ahora solo llega un step entonces para que se luzca mas
-      steps: [...steps_, ...steps_] as MathStep[],
+      steps: steps_ as MathStep[],
       suggestions: suggestions_ as string[],
-      text
+      text,
+      type: capitalizeFirstLetter(result.result.tag)
     });
   } catch(error) {
     console.log(error);
@@ -92,8 +100,7 @@ export const action: ActionFunction = async({ request }) => {
   }
 };
 
-type Steps = "first" | "steps" | "suggestions"
-// todo: si la expresion es una funcion mostrar todo en vez de paso por paso
+type Steps = "first" | "steps" | "suggestions" | "function"
 export default function Index() {
   const transition = useTransition();
   const data = useActionData<ActionData>();
@@ -102,12 +109,13 @@ export default function Index() {
   const [step, setStep] = useState<Steps>("first");
   const [stepByStep, setStepByStep] = useState<number>(0);
   // todo: scrollear al siguiente step cuando se toca el boton
-  const offerSuggestions = step === "steps" && stepByStep > 0 && data?.steps?.length && stepByStep === data?.steps?.length - 1;
+  const isFunction = data?.type === "Function";
+  const offerSuggestions = step === "steps" && data?.steps?.length && stepByStep === data?.steps?.length - 1;
+
   function nextStep() {
     if (offerSuggestions) {
       // estoy en el ultimo step, voy a suggestions
       setStep("suggestions");
-      return;
     }
     setStepByStep(prev => prev + 1);
   }
@@ -166,7 +174,11 @@ export default function Index() {
       {!!data?.result && (
         <div className="font-medium space-y-2">
           <h2 className="text-xl font-bold">Expresión matemática:</h2>
-          <p className="text-md font-bold"><Latex>{`$${data.result}$`}</Latex></p>
+          <p className="text-md font-bold">
+            <Latex>
+              {isFunction ? `$f(x) = ${data.result}$` : `$${data.result}$`}
+            </Latex>
+          </p>
         </div>
       )}
       {!!data?.error && (
@@ -178,15 +190,15 @@ export default function Index() {
       <button
         className="rounded-lg font-bold p-4 bg-indigo-500"
         onClick={() => {
-          setStep("steps");
+          setStep(isFunction ? "function" : "steps");
           setStepByStep(0);
         }}
       >
-        Ver el paso a paso de la resolución
+        {isFunction ? "Ver dominio, imagen, raíces y ordenada al origen" : "Ver el paso a paso de la resolución"}
       </button>
       }
       {/* timeline */}
-      {step !== "first" && <>
+      {["steps", "suggestions", "function"].includes(step) && <>
         <div className="container mx-auto w-full h-full relative">
           {data?.steps?.map((s: MathStep, index: number) => {
             if (stepByStep < index) {
@@ -232,14 +244,40 @@ export default function Index() {
             );
           })}
         </div>
-        {offerSuggestions &&
-        <button
-          className="rounded-lg font-bold p-4 bg-indigo-500"
-          onClick={() => setStep("suggestions")}
-        >
-          Ver ejercicios parecidos
-        </button>
+        {(offerSuggestions || step === "suggestions") &&
+          <button
+            className="rounded-lg font-bold p-4 bg-indigo-500"
+            onClick={() => setStep("suggestions")}
+          >
+            Ver ejercicios parecidos
+          </button>
         }
+      </>
+      }
+      {/* Caso funciones */}
+      {step === "function" && <>
+        <div className="container mx-auto w-full h-full relative">
+          {data?.steps?.map((s: MathStep, index: number) => {
+            return (
+              <div key={`${s.option} ${index}`}
+                className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
+                <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
+                  <h1
+                    className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">{index + 1}</h1>
+                </div>
+                <div className="w-full flex">
+                  <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
+                    <h3 className="mb-3 font-bold text-gray-800 text-xl">{s.option}</h3>
+                    <p className="text-sm leading-snug tracking-wide text-gray-900">{s.equationOption}</p>
+                    {s.equation &&
+                      <p className="text-sm leading-snug tracking-wide text-gray-900"><Latex>{`$${s.equation}$`}</Latex></p>
+                    }
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </>
       }
       {step === "suggestions" && <div>Sugerencias</div>}
