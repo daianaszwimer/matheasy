@@ -43,6 +43,7 @@ export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
   try {
     const text = body.get("problem") as string;
+    console.log(process.env.API_URL, "env---BBBBBBaa---");
     const mathExpression = await fetch(`${process.env.API_URL}/math-translation`, {
       method: "POST",
       body: JSON.stringify({ text }),
@@ -50,6 +51,7 @@ export const action: ActionFunction = async({ request }) => {
         "Content-Type": "application/json"
       }
     });
+    console.log(process.env.API_URL, "env---aaaa---");
     const result = await mathExpression.json();
     if (result.error || result.result === "") {
       return json<ActionData>({
@@ -60,7 +62,7 @@ export const action: ActionFunction = async({ request }) => {
       fetch(`${process.env.PROFEBOT_API}/exercise-resolution`, {
         method: "POST",
         // todo: matheasy me va a retornar el exercise tag en algun momento, por ahora esta hardcodeada
-        body: JSON.stringify({ exercise: result.result, exerciseTag: "Equation" }),
+        body: JSON.stringify({ exercise: result.result.expression, exerciseTag: result.result.tag }),
         headers: {
           "Content-Type": "application/json"
         }
@@ -76,7 +78,7 @@ export const action: ActionFunction = async({ request }) => {
     let suggestions_ = await suggestions.json();
     let steps_ = await steps.json();
     return json<ActionData>({
-      result: result.result,
+      result: result.result.expression,
       // hardcodeado porque por ahora solo llega un step entonces para que se luzca mas
       steps: [...steps_, ...steps_] as MathStep[],
       suggestions: suggestions_ as string[],
