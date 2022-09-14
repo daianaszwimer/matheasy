@@ -206,8 +206,9 @@ export default function Index() {
                 <div key={`${s.option} ${index}`}
                   className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
                   <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
-                    <h1
-                      className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">{index + 1}</h1>
+                    <h1 className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">
+                      &#x2714;
+                    </h1>
                   </div>
                   <button
                     className="w-full flex w-full blur"
@@ -231,8 +232,9 @@ export default function Index() {
               <div key={`${s.option} ${index}`}
                 className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
                 <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
-                  <h1
-                    className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">{index + 1}</h1>
+                  <h1 className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">
+                    &#x2714;
+                  </h1>
                 </div>
                 <div className="w-full flex">
                   <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
@@ -262,8 +264,9 @@ export default function Index() {
               <div key={`${s.option} ${index}`}
                 className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
                 <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
-                  <h1
-                    className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">{index + 1}</h1>
+                  <h1 className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">
+                    &#x2714;
+                  </h1>
                 </div>
                 <div className="w-full flex">
                   <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
