@@ -5,8 +5,9 @@ import { useEffect, useState } from "react";
 import styles from "katex/dist/katex.min.css";
 import Latex from "react-latex-next";
 import linkIcon from "~/assets/link.svg";
+import infoIcon from "~/assets/info.svg";
 
-type MathStep = {option: string, equationOption: string, equation?: string}
+type MathStep = {option: string, equationOption: string, equation?: string, info?: string}
 
 interface ActionData {
   result?: string;
@@ -61,7 +62,8 @@ export const action: ActionFunction = async({ request }) => {
 
     // todo: cuando el back mande bien el tag borrar
     function capitalizeFirstLetter(string: string) {
-      return string.charAt(0).toUpperCase() + string.slice(1);
+      return "Equation";
+      //return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
     let [steps, suggestions] = await Promise.all([
@@ -198,7 +200,7 @@ export default function Index() {
       </button>
       }
       {/* timeline */}
-      {["steps", "suggestions", "function"].includes(step) && <>
+      {["steps", "suggestions"].includes(step) && <>
         <div className="container mx-auto w-full h-full relative">
           {data?.steps?.map((s: MathStep, index: number) => {
             if (stepByStep < index) {
@@ -230,7 +232,7 @@ export default function Index() {
             }
             return (
               <div key={`${s.option} ${index}`}
-                className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
+                className="border-2-2 border-white border-l gap-8 items-center w-full wrap p-10 h-full flex ml-5">
                 <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
                   <h1 className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">
                     &#x2714;
@@ -238,7 +240,17 @@ export default function Index() {
                 </div>
                 <div className="w-full flex">
                   <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
-                    <h3 className="mb-3 font-bold text-gray-800 text-xl">{s.option}</h3>
+                    <div className="flex items-center gap-2 mb-3">
+                      <h3 className="font-bold text-gray-800 text-xl">{s.option}</h3>
+
+                      <button className="group relative inline-block">
+                        <img src={infoIcon} alt="information" className="w-5"/>
+                        <div role="tooltip"
+                          className="absolute hidden group-hover:flex -left-[8.4rem] -top-2 -translate-y-full w-72 p-2.5 bg-gray-700 rounded-lg text-center text-white text-sm after:content-[''] after:absolute after:left-1/2 after:top-[100%] after:-translate-x-1/2 after:border-8 after:border-x-transparent after:border-b-transparent after:border-t-gray-700">
+                          This is some extra useful information
+                        </div>
+                      </button>
+                    </div>
                     <p className="text-sm leading-snug tracking-wide text-gray-900"><Latex>{`$${s.equationOption}$`}</Latex></p>
                   </div>
                 </div>
