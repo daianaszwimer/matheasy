@@ -19,7 +19,7 @@ export default function History() {
         <ul className="list-disc space-y-6">
           {history.reverse().map(element => (
             <li key={element}>
-              <Link className="underline" to={`/?text=${encodeURI(element)}`}>{element}</Link>
+              <Link className="underline" to={`/?text=${encodeURI(element.replace("+", "%2B"))}`}>{element}</Link>
             </li>
           ))}
         </ul>
