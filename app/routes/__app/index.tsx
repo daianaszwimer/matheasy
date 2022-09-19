@@ -319,7 +319,7 @@ export default function Index() {
       </>
       }
       {step === "suggestions" && <div>Sugerencias</div>}
-      {!!data?.result && <button
+      {!!data?.result && !data?.error && <button
         className="rounded-lg text-sm p-3 bg-teal-600 flex flex-row gap-2 items-center"
         onClick={async () => {
           const link = `${url}?text=${encodeURIComponent(data?.text?.replace("+", "%2B") || "")}`;
