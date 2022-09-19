@@ -9,13 +9,15 @@ import infoIcon from "~/assets/info.svg";
 
 type MathStep = {option: string, equationOption: string, equation?: string, info?: string}
 
+type Tag = "Equation" | "Function";
+
 interface ActionData {
-  result?: string;
+  result?: string | null;
   error?: string;
   steps?: MathStep[],
   suggestions?: string[]
   text?: string;
-  type?: string;
+  type?: Tag | null;
 }
 
 interface LoaderData {
@@ -43,7 +45,13 @@ export const loader: LoaderFunction = async ({
 
 export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
-  let result = {};
+  let result = {
+    error: null,
+    result: {
+      expression: null,
+      tag: null,
+    }
+  };
   try {
     const text = body.get("problem") as string;
     const mathExpression = await fetch(`${process.env.API_URL}/math-translation`, {
@@ -55,6 +63,7 @@ export const action: ActionFunction = async({ request }) => {
     });
     result = await mathExpression.json();
     console.log(result);
+    // @ts-ignore
     if (result.error || result.result === "") {
       return json<ActionData>({
         error: "Ups! No puedo entender ese enunciado. Probá con otro",
@@ -87,11 +96,11 @@ export const action: ActionFunction = async({ request }) => {
     let steps_ = await steps.json();
     console.log(steps_);
     return json<ActionData>({
-      result: result.result.expression,
+      result: result.result.expression || "",
       steps: steps_ as MathStep[],
       suggestions: suggestions_ as string[],
       text,
-      type: result.result.tag
+      type: result.result.tag as unknown as Tag,
     });
   } catch(error) {
     console.log(error);
