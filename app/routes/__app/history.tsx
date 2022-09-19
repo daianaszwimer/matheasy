@@ -17,7 +17,7 @@ export default function History() {
           Hacé click en el enunciado que quieras ver
         </h2>
         <ul className="list-disc space-y-6">
-          {history.map(element => (
+          {history.reverse().map(element => (
             <li key={element}>
               <Link className="underline" to={`/?text=${encodeURI(element)}`}>{element}</Link>
             </li>
