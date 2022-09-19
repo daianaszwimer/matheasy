@@ -9,13 +9,15 @@ import infoIcon from "~/assets/info.svg";
 
 type MathStep = {option: string, equationOption: string, equation?: string, info?: string}
 
+type Tag = "Equation" | "Function";
+
 interface ActionData {
-  result?: string;
+  result?: string | null;
   error?: string;
   steps?: MathStep[],
   suggestions?: string[]
   text?: string;
-  type?: string;
+  type?: Tag | null;
 }
 
 interface LoaderData {
@@ -37,12 +39,19 @@ export const loader: LoaderFunction = async ({
   request,
 }) => {
   const url = new URL(request.url);
-  const defaultText = decodeURI(url.searchParams.get("text") || "");
+  const defaultText = decodeURIComponent(url.searchParams.get("text") || "");
   return json<LoaderData>({ defaultText, url: process.env.WEB_URL || "" });
 };
 
 export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
+  let result = {
+    error: null,
+    result: {
+      expression: null,
+      tag: null,
+    }
+  };
   try {
     const text = body.get("problem") as string;
     const mathExpression = await fetch(`${process.env.API_URL}/math-translation`, {
@@ -52,18 +61,13 @@ export const action: ActionFunction = async({ request }) => {
         "Content-Type": "application/json"
       }
     });
-    const result = await mathExpression.json();
+    result = await mathExpression.json();
     console.log(result);
+    // @ts-ignore
     if (result.error || result.result === "") {
       return json<ActionData>({
         error: "Ups! No puedo entender ese enunciado. Probá con otro",
       });
-    }
-
-    // todo: cuando el back mande bien el tag borrar
-    function capitalizeFirstLetter(string: string) {
-      return "Equation";
-      //return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
     let [steps, suggestions] = await Promise.all([
@@ -71,7 +75,7 @@ export const action: ActionFunction = async({ request }) => {
         method: "POST",
         body: JSON.stringify({
           exercise: result.result.expression,
-          exerciseTag: capitalizeFirstLetter(result.result.tag)
+          exerciseTag: result.result.tag
         }),
         headers: {
           "Content-Type": "application/json"
@@ -85,21 +89,32 @@ export const action: ActionFunction = async({ request }) => {
         }
       })
     ]);
+    if (steps.status !== 200) {
+      throw new Error("Error en la llamada de /steps");
+    }
     let suggestions_ = await suggestions.json();
     let steps_ = await steps.json();
+    console.log(steps_);
     return json<ActionData>({
-      result: result.result.expression,
+      result: result.result.expression || "",
       steps: steps_ as MathStep[],
       suggestions: suggestions_ as string[],
       text,
-      type: capitalizeFirstLetter(result.result.tag)
+      type: result.result.tag as unknown as Tag,
     });
   } catch(error) {
     console.log(error);
     return json<ActionData>({
-      error: "Ups! Algo falló, inténtalo nuevamente"
+      error: "Ups! Algo falló, inténtalo nuevamente",
+      result: result.result.expression,
+      type: result.result.tag
     });
   }
+};
+
+let tipos = {
+  "Function": "función",
+  "Equation": "ecuación"
 };
 
 type Steps = "first" | "steps" | "suggestions" | "function"
@@ -128,8 +143,15 @@ export default function Index() {
   useEffect(() => {
     if (!data?.text) return;
     let history = JSON.parse(localStorage.getItem("ejercicios") || "[]");
+    // si el elemento ya existe moverlo de lugar al ultimo
+    let index = history.indexOf(data?.text);
+    if (index !== -1) {
+      // muevo el elemento al final de la lista
+      history.push(history.splice(index, 1)[0]);
+      localStorage.setItem("ejercicios", JSON.stringify(history));
+      return;
+    }
     // me aseguro que hayan como mucho 5 enunciados
-    // todo: si el elemento ya existe guardar duplicado o moverlo de lugar al ultimo?
     if (history.length < 5) {
       history.push(data?.text);
     } else {
@@ -144,7 +166,7 @@ export default function Index() {
       <h1 className="text-3xl font-bold text-center">
         Ingresá el enunciado de matemática
       </h1>
-      <Form method="post" className="">
+      <Form method="post">
         <div className="flex-col h-full w-full mx-auto">
           <div className="relative rounded-xl overflow-auto">
             <label htmlFor="problem" className="sr-only">
@@ -164,19 +186,19 @@ export default function Index() {
             <button
               type="submit"
               onClick={() => setStep("first")}
-              className="block w-full py-3 px-4 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+              className="font-bold block w-full py-3 px-4 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
             >
               {transition.state === "submitting"
-                ? "Calculando..."
-                : "Calcular"}
+                ? "Calculando expresión matemática..."
+                : "Calcular expresión matemática"}
             </button>
           </div>
         </div>
       </Form>
       {!!data?.result && (
         <div className="font-medium space-y-2">
-          <h2 className="text-xl font-bold">Expresión matemática:</h2>
-          <p className="text-md font-bold">
+          <h2 className="text-lg font-bold">Expresión matemática:</h2>
+          <p className="text-lg font-bold">
             <Latex>
               {isFunction ? `$f(x) = ${data.result}$` : `$${data.result}$`}
             </Latex>
@@ -185,10 +207,10 @@ export default function Index() {
       )}
       {!!data?.error && (
         <div className="font-medium space-y-2">
-          <p className="text-xl font-bold">{data.error}</p>
+          <p className="text-xl font-bold">{data?.result && data?.type ? `Ups! No podemos resolver el paso a paso, pero sabemos la expresión y que se trata de una ${tipos[data.type]}` : data.error}</p>
         </div>
       )}
-      {!!data?.result &&
+      {!!data?.result && !data?.error &&
       <button
         className="rounded-lg font-bold p-4 bg-indigo-500"
         onClick={() => {
@@ -209,7 +231,7 @@ export default function Index() {
                   className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
                   <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
                     <h1 className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">
-                      &#x2714;
+                      {index + 1}
                     </h1>
                   </div>
                   <button
@@ -217,7 +239,7 @@ export default function Index() {
                     onClick={nextStep}
                   >
                     <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
-                      <h3 className="mb-3 font-bold text-gray-800 text-xl">{s.option}</h3>
+                      <h3 className="mb-3 font-bold text-gray-800 text-md flex-1">{s.option}</h3>
                       <p className="text-sm leading-snug tracking-wide text-gray-900"><Latex>{`$${s.equationOption}$`}</Latex></p>
                     </div>
                   </button>
@@ -235,21 +257,22 @@ export default function Index() {
                 className="border-2-2 border-white border-l gap-8 items-center w-full wrap p-10 h-full flex ml-5">
                 <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
                   <h1 className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">
-                    &#x2714;
+                    {index + 1}
                   </h1>
                 </div>
                 <div className="w-full flex">
                   <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <h3 className="font-bold text-gray-800 text-xl">{s.option}</h3>
+                      <h3 className="font-bold text-gray-800 text-md flex-1">{s.option}</h3>
 
-                      <button className="group relative inline-block">
-                        <img src={infoIcon} alt="information" className="w-5"/>
-                        <div role="tooltip"
-                          className="absolute hidden group-hover:flex -left-[8.4rem] -top-2 -translate-y-full w-72 p-2.5 bg-gray-700 rounded-lg text-center text-white text-sm after:content-[''] after:absolute after:left-1/2 after:top-[100%] after:-translate-x-1/2 after:border-8 after:border-x-transparent after:border-b-transparent after:border-t-gray-700">
-                          This is some extra useful information
-                        </div>
-                      </button>
+                      {s.info &&
+                        <button className="group relative inline-block">
+                          <img src={infoIcon} alt="information" className="w-5 h-5"/>
+                          <div role="tooltip" className="absolute hidden group-hover:flex -left-[8.4rem] -top-2 -translate-y-full w-72 p-2.5 bg-gray-700 rounded-lg text-center text-white text-sm after:content-[''] after:absolute after:left-1/2 after:top-[100%] after:-translate-x-1/2 after:border-8 after:border-x-transparent after:border-b-transparent after:border-t-gray-700">
+                            {s.info}
+                          </div>
+                        </button>
+                      }
                     </div>
                     <p className="text-sm leading-snug tracking-wide text-gray-900"><Latex>{`$${s.equationOption}$`}</Latex></p>
                   </div>
@@ -282,8 +305,8 @@ export default function Index() {
                 </div>
                 <div className="w-full flex">
                   <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
-                    <h3 className="mb-3 font-bold text-gray-800 text-xl">{s.option}</h3>
-                    <p className="text-sm leading-snug tracking-wide text-gray-900">{s.equationOption}</p>
+                    <h3 className="mb-3 font-bold text-gray-800 text-md flex-1">{s.option}</h3>
+                    <p className="text-md leading-snug tracking-wide text-gray-900">{s.equationOption}</p>
                     {s.equation &&
                       <p className="text-sm leading-snug tracking-wide text-gray-900"><Latex>{`$${s.equation}$`}</Latex></p>
                     }
@@ -299,7 +322,7 @@ export default function Index() {
       {!!data?.result && <button
         className="rounded-lg text-sm p-3 bg-teal-600 flex flex-row gap-2 items-center"
         onClick={async () => {
-          const link = `${url}?text=${encodeURI(data?.text || "")}`;
+          const link = `${url}?text=${encodeURIComponent(data?.text || "")}`;
           if ("clipboard" in navigator) {
             await navigator.clipboard.writeText(link);
             setHasLinkCopied(true);
