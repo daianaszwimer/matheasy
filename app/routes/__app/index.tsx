@@ -231,7 +231,7 @@ function FunctionStep({ step, order }: FunctionSteProps) {
       className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
       <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
         <span className="mx-auto font-semibold text-md md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
-          &#10145;&#65039;
+          &#10140;
         </span>
       </div>
       <div className="w-full flex">
