@@ -21,14 +21,14 @@ let content = [
 
 export default function FAQ() {
   return (<>
-    <h1 className="text-3xl font-bold text-white text-center">
+    <h1 className="text-2xl md:text-3xl font-bold text-white text-center">
       Preguntas frecuentes
     </h1>
     <ul className="list-disc space-y-6">
       {content.map(element => (
         <li key={element.question} className="space-y-2">
-          <h3 className="text-lg">{element.question}</h3>
-          <p>{element.answer}</p>
+          <h3 className="text-lg font-semibold">{element.question}</h3>
+          <p className="text-md">{element.answer}</p>
         </li>
       ))}
     </ul>

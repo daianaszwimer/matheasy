@@ -20,7 +20,7 @@ export default function App() {
           <li className="flex"><Link className="p-4" to="/faq">Ayuda</Link></li>
         </ul>
       </nav>
-      <main className="min-h-[calc(100vh_-_32px_-_16px_-_16px_-_56px)] space-y-6 flex-col pt-10 p-5 sm:max-w-2xl sm:mx-auto">
+      <main className="min-h-[calc(100vh_-_32px_-_16px_-_16px_-_56px)] md:space-y-6 space-y-4 flex-col md:pt-10 pt-7 p-5 sm:max-w-2xl sm:mx-auto">
         <Outlet/>
       </main>
 

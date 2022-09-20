@@ -1,7 +1,7 @@
 import { Form, useActionData, useLoaderData, useTransition } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type {  ActionFunction , LoaderFunction } from "@remix-run/node";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "katex/dist/katex.min.css";
 import Latex from "react-latex-next";
 import linkIcon from "~/assets/link.svg";
@@ -118,6 +118,147 @@ let tipos = {
 };
 
 type Steps = "first" | "steps" | "suggestions" | "function"
+
+interface StepProps {
+  hide: boolean;
+  order: number;
+  step: MathStep;
+  onClick: () => void;
+  isNext: boolean;
+}
+
+function Step({ hide, step, onClick, order, isNext }: StepProps) {
+  const element = useRef<HTMLDivElement>(null);
+  const [showMore, setShowMore] = useState(false);
+  useEffect(() => {
+    if (!hide && element?.current) {
+      element.current.scrollIntoView({
+        behavior: "smooth"
+      }
+      );
+    }
+  }, [hide, element]);
+
+  if (hide) {
+    return (
+      <div
+        className="border-white border-l gap-8 items-center w-full wrap overflow-hidden p-5 md:p-10 h-full flex md:ml-5 ml-3">
+        <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
+          <p className="mx-auto font-semibold text-md md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+            {order}
+          </p>
+        </div>
+        <button
+          className="w-full flex w-full blur"
+          onClick={onClick}
+        >
+          <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+            <p className="mb-3 font-bold text-neutral-900 text-md flex-1">{step.option}</p>
+            <p className="text-sm leading-snug tracking-wide text-neutral-900"><Latex>{`$${step.equationOption}$`}</Latex></p>
+            {step.info && !showMore &&
+              <div className="flex md:mt-3 mt-2 gap-2 md:gap-2.5">
+                <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
+                <p className="text-xs underline text-neutral-800 cursor-pointer">Ver más</p>
+              </div>
+            }
+          </div>
+        </button>
+        {isNext &&
+          <button
+            onClick={onClick}
+            className="md:text-base text-sm absolute rounded-lg font-bold md:p-4 p-3 bg-indigo-500 hover:bg-indigo-600"
+            style={{ left: "calc(50% - 60px)" }}>
+            Siguiente paso
+          </button>
+        }
+      </div>
+    );
+  }
+  return (
+    <div ref={element}
+      className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
+      <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
+        <p className="mx-auto font-semibold text-md md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+          {order}
+        </p>
+      </div>
+      <div className="w-full flex">
+        <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+          <div className="flex items-center gap-2 md:gap-2.5 md:mb-3 mb-2">
+            <p className="font-bold text-neutral-900 text-md flex-1">{step.option}</p>
+          </div>
+          <p className="text-sm leading-snug tracking-wide text-neutral-900"><Latex>{`$${step.equationOption}$`}</Latex></p>
+          {step.info && !showMore &&
+            <button className="flex md:mt-3 mt-2 gap-2 md:gap-2.5" onClick={() => setShowMore(true)}>
+              <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
+              <p className="text-xs underline text-neutral-800 cursor-pointer">Ver más</p>
+            </button>
+          }
+          {showMore &&
+            <div className="md:mt-3 mt-2 space-y-2">
+              <button className="flex gap-2" onClick={() => setShowMore(false)}>
+                <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
+                <p className="text-xs underline text-neutral-800 cursor-pointer">Ver menos</p>
+              </button>
+              <p className="text-xs text-neutral-800">{step.info}</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface FunctionSteProps {
+  order: number;
+  step: MathStep;
+}
+
+function FunctionStep({ step, order }: FunctionSteProps) {
+  const element = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (order === 0) {
+      if (element?.current) {
+        element.current.scrollIntoView({
+          behavior: "smooth"
+        }
+        );
+      }
+    }
+  }, [element, order]);
+  return (
+    <div ref={element}
+      className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
+      <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
+        <span className="mx-auto font-semibold text-md md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+          &#10140;
+        </span>
+      </div>
+      <div className="w-full flex">
+        <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+          <p className="font-bold text-neutral-900 text-md md:mb-3 mb-2">{step.option}</p>
+          <p className="text-sm leading-snug tracking-wide text-neutral-900">{step.equationOption}</p>
+          {step.equation &&
+            <p className="text-sm leading-snug tracking-wide text-neutral-900"><Latex>{`$${step.equation}$`}</Latex></p>
+          }
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Button({ text, onClick }: {text: string; onClick(): void}) {
+  return (
+    <button
+      type="submit"
+      onClick={onClick}
+      className="w-full font-bold block w-full p-3.5 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+    >
+      {text}
+    </button>
+  );
+}
+
 export default function Index() {
   const transition = useTransition();
   const data = useActionData<ActionData>();
@@ -125,9 +266,14 @@ export default function Index() {
   const [hasLinkCopied, setHasLinkCopied] = useState(false);
   const [step, setStep] = useState<Steps>("first");
   const [stepByStep, setStepByStep] = useState<number>(0);
-  // todo: scrollear al siguiente step cuando se toca el boton
   const isFunction = data?.type === "Function";
   const offerSuggestions = step === "steps" && data?.steps?.length && stepByStep === data?.steps?.length - 1;
+
+  useEffect(() => {
+    if (!hasLinkCopied) return;
+    const timer = setTimeout(() => { setHasLinkCopied(false); }, 2000);
+    return () => clearTimeout(timer);
+  }, [hasLinkCopied]);
 
   function nextStep() {
     if (offerSuggestions) {
@@ -163,7 +309,8 @@ export default function Index() {
 
   return (
     <>
-      <h1 className="text-3xl font-bold text-center">
+      <h1 className="text-2xl md:text-3xl font-bold text-center">
+        <span className="mr-2">&#128221;</span>
         Ingresá el enunciado de matemática
       </h1>
       <Form method="post">
@@ -179,26 +326,22 @@ export default function Index() {
               defaultValue={defaultText}
               required
               placeholder="¿Cuánto es 5 más 2?"
-              className="w-full resize block w-full px-4 py-3 rounded-md border-0 text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+              className="overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
             />
           </div>
           <div className="mt-4">
-            <button
-              type="submit"
-              onClick={() => setStep("first")}
-              className="font-bold block w-full py-3 px-4 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
-            >
-              {transition.state === "submitting"
+            <Button
+              text={transition.state === "submitting"
                 ? "Calculando expresión matemática..."
                 : "Calcular expresión matemática"}
-            </button>
+              onClick={() => setStep("first")}
+            />
           </div>
         </div>
       </Form>
       {!!data?.result && (
-        <div className="font-medium space-y-2">
-          <h2 className="text-lg font-bold">Expresión matemática:</h2>
-          <p className="text-lg font-bold">
+        <div className="font-medium space-y-2 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+          <p className="text-md font-bold text-neutral-900">
             <Latex>
               {isFunction ? `$f(x) = ${data.result}$` : `$${data.result}$`}
             </Latex>
@@ -211,130 +354,68 @@ export default function Index() {
         </div>
       )}
       {!!data?.result && !data?.error &&
-      <button
-        className="rounded-lg font-bold p-4 bg-indigo-500"
-        onClick={() => {
-          setStep(isFunction ? "function" : "steps");
-          setStepByStep(0);
-        }}
-      >
-        {isFunction ? "Ver dominio, imagen, raíces y ordenada al origen" : "Ver el paso a paso de la resolución"}
-      </button>
+        <Button
+          text={isFunction ? "Ver dominio, imagen, raíces y ordenada al origen" : "Ver el paso a paso de la resolución"}
+          onClick={() => {
+            setStep(isFunction ? "function" : "steps");
+            setStepByStep(0);
+          }}
+        />
       }
       {/* timeline */}
       {["steps", "suggestions"].includes(step) && <>
-        <div className="container mx-auto w-full h-full relative">
-          {data?.steps?.map((s: MathStep, index: number) => {
-            if (stepByStep < index) {
-              return (
-                <div key={`${s.option} ${index}`}
-                  className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
-                  <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
-                    <h1 className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">
-                      {index + 1}
-                    </h1>
-                  </div>
-                  <button
-                    className="w-full flex w-full blur"
-                    onClick={nextStep}
-                  >
-                    <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
-                      <h3 className="mb-3 font-bold text-gray-800 text-md flex-1">{s.option}</h3>
-                      <p className="text-sm leading-snug tracking-wide text-gray-900"><Latex>{`$${s.equationOption}$`}</Latex></p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={nextStep}
-                    className="absolute rounded-lg font-bold p-4 bg-indigo-500"
-                    style={{ left: "calc(50% - 60px)" }}>
-                    Siguiente paso
-                  </button>
-                </div>
-              );
-            }
-            return (
-              <div key={`${s.option} ${index}`}
-                className="border-2-2 border-white border-l gap-8 items-center w-full wrap p-10 h-full flex ml-5">
-                <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
-                  <h1 className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">
-                    {index + 1}
-                  </h1>
-                </div>
-                <div className="w-full flex">
-                  <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <h3 className="font-bold text-gray-800 text-md flex-1">{s.option}</h3>
-
-                      {s.info &&
-                        <button className="group relative inline-block">
-                          <img src={infoIcon} alt="information" className="w-5 h-5"/>
-                          <div role="tooltip" className="absolute hidden group-hover:flex -left-[8.4rem] -top-2 -translate-y-full w-72 p-2.5 bg-gray-700 rounded-lg text-center text-white text-sm after:content-[''] after:absolute after:left-1/2 after:top-[100%] after:-translate-x-1/2 after:border-8 after:border-x-transparent after:border-b-transparent after:border-t-gray-700">
-                            {s.info}
-                          </div>
-                        </button>
-                      }
-                    </div>
-                    <p className="text-sm leading-snug tracking-wide text-gray-900"><Latex>{`$${s.equationOption}$`}</Latex></p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <ul className="container mx-auto w-full h-full relative">
+          {data?.steps?.map((s: MathStep, index: number) =>
+            <li key={`${s.option} ${index}`}>
+              <Step hide={stepByStep < index} order={index + 1} step={s} onClick={nextStep} isNext={stepByStep === (index - 1)}/>
+            </li>
+          )}
+        </ul>
         {(offerSuggestions || step === "suggestions") &&
-          <button
-            className="rounded-lg font-bold p-4 bg-indigo-500"
+          <Button
+            text="Ver ejercicios parecidos"
             onClick={() => setStep("suggestions")}
-          >
-            Ver ejercicios parecidos
-          </button>
+          />
         }
       </>
       }
       {/* Caso funciones */}
       {step === "function" && <>
-        <div className="container mx-auto w-full h-full relative">
+        <ul className="container mx-auto w-full h-full relative">
           {data?.steps?.map((s: MathStep, index: number) => {
             return (
-              <div key={`${s.option} ${index}`}
-                className="border-2-2 border-white border-l gap-8 items-center w-full wrap overflow-hidden p-10 h-full flex ml-5">
-                <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute left-1">
-                  <h1 className="mx-auto font-semibold text-lg text-gray-900 w-8 h-8 flex items-center justify-center">
-                    &#x2714;
-                  </h1>
-                </div>
-                <div className="w-full flex">
-                  <div className="flex-1 bg-white rounded-lg shadow-xl px-6 py-4">
-                    <h3 className="mb-3 font-bold text-gray-800 text-md flex-1">{s.option}</h3>
-                    <p className="text-md leading-snug tracking-wide text-gray-900">{s.equationOption}</p>
-                    {s.equation &&
-                      <p className="text-sm leading-snug tracking-wide text-gray-900"><Latex>{`$${s.equation}$`}</Latex></p>
-                    }
-                  </div>
-                </div>
-              </div>
+              <li key={`${s.option} ${index}`}>
+                <FunctionStep order={index} step={s}/>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </>
       }
       {step === "suggestions" && <div>Sugerencias</div>}
-      {!!data?.result && !data?.error && <button
-        className="rounded-lg text-sm p-3 bg-teal-600 flex flex-row gap-2 items-center"
-        onClick={async () => {
-          const link = `${url}?text=${encodeURIComponent(data?.text?.replace("+", "%2B") || "")}`;
-          if ("clipboard" in navigator) {
-            await navigator.clipboard.writeText(link);
-            setHasLinkCopied(true);
-          } else {
-            document.execCommand("copy", true, link);
-            setHasLinkCopied(true);
-          }
-        }}
-      >
-        <img src={linkIcon} alt="" className="w-4"/>
-        {hasLinkCopied ? "Copiado!" : "Copia el link al ejercicio y compartilo!"}
-      </button>}
+      {!!data?.result && !data?.error &&
+        <div className="flex flex-col md:flex-row gap-3 md:items-center items-start">
+          <button
+            className="rounded-lg text-sm p-3 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
+            onClick={async () => {
+              const link = `${url}?text=${encodeURIComponent(data?.text?.replace("+", "%2B") || "")}`;
+              if ("clipboard" in navigator) {
+                await navigator.clipboard.writeText(link);
+                setHasLinkCopied(true);
+              } else {
+                document.execCommand("copy", true, link);
+                setHasLinkCopied(true);
+              }
+            }}
+          >
+            <img src={linkIcon} alt="" className="w-4"/>
+            <p>Copia el link al ejercicio y compartilo!</p>
+          </button>
+          <div className={`bg-green-50 border-l-8 border-green-500 p-3 w-fit rounded-md transition-opacity ${hasLinkCopied ? "opacity-100" : "opacity-0"}`}>
+            <p className="text-green-900 text-sm font-bold">Copiado!</p>
+          </div>
+        </div>
+      }
     </>
   );
 }

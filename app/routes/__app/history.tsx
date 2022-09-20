@@ -8,12 +8,12 @@ export default function History() {
     setHistory(_history);
   }, []);
   return (<>
-    <h1 className="text-3xl font-bold text-white text-center">
+    <h1 className="text-2xl md:text-3xl font-bold text-white text-center">
       Historial de enunciados
     </h1>
     {history.length > 0 ?
       <>
-        <h2 className="text-xl font-bold text-white text-center">
+        <h2 className="text-md md:text-xl font-bold text-white text-center">
           Hacé click en el enunciado que quieras ver
         </h2>
         <ul className="list-disc space-y-6">
