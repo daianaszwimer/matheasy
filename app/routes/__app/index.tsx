@@ -345,7 +345,7 @@ export default function Index() {
     <>
       <h1 className="text-2xl md:text-3xl font-bold text-center">
         <span className="mr-2">&#128221;</span>
-        Ingresá el enunciado de matemática
+        Ingresá el enunciado matemático
       </h1>
       <Form method="post">
         <div className="flex-col h-full w-full mx-auto">
