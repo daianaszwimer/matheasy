@@ -9,8 +9,7 @@ import infoIcon from "~/assets/info.svg";
 
 type MathStep = {
   option: string,
-  equationOption?: string,
-  equationOptions?: {
+  equationOptions: {
     content: string;
     equationOptionType: "TEXT" | "LATEX"
   }[],
@@ -162,7 +161,9 @@ function Step({ hide, step, onClick, order, isNext }: StepProps) {
         >
           <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
             <p className="mb-3 font-bold text-neutral-900 text-md flex-1">{step.option}</p>
-            <p className="text-sm leading-snug tracking-wide text-neutral-900"><Latex>{`$${step.equationOption}$`}</Latex></p>
+            <p className="text-sm leading-snug tracking-wide text-neutral-900">
+              {step.equationOptions?.map(option => showEquationOption(option))}
+            </p>
             {step.info && !showMore &&
               <div className="flex md:mt-3 mt-2 gap-2 md:gap-2.5">
                 <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
@@ -195,7 +196,9 @@ function Step({ hide, step, onClick, order, isNext }: StepProps) {
           <div className="flex items-center gap-2 md:gap-2.5 md:mb-3 mb-2">
             <p className="font-bold text-neutral-900 text-md flex-1">{step.option}</p>
           </div>
-          <p className="text-sm leading-snug tracking-wide text-neutral-900"><Latex>{`$${step.equationOption}$`}</Latex></p>
+          <p className="text-sm leading-snug tracking-wide text-neutral-900">
+            {step.equationOptions?.map(option => showEquationOption(option))}
+          </p>
           {step.info && !showMore &&
             <button className="flex md:mt-3 mt-2 gap-2 md:gap-2.5" onClick={() => setShowMore(true)}>
               <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
@@ -215,6 +218,13 @@ function Step({ hide, step, onClick, order, isNext }: StepProps) {
       </div>
     </div>
   );
+}
+
+function showEquationOption({ content, equationOptionType }: {content: string, equationOptionType: "TEXT" | "LATEX"}) {
+  if (equationOptionType === "TEXT") {
+    return content;
+  }
+  return <Latex key={content}>{`$${content}$`}</Latex>;
 }
 
 interface FunctionSteProps {
@@ -248,12 +258,7 @@ function FunctionStep({ step, order }: FunctionSteProps) {
         <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
           <p className="font-bold text-neutral-900 text-md md:mb-3 mb-2">{step.option}</p>
           <p className="text-sm leading-snug tracking-wide text-neutral-900">
-            {step.equationOptions?.map(option => {
-              if (option.equationOptionType === "TEXT") {
-                return option.content;
-              }
-              return <Latex key={option.content}>{`$${option.content}$`}</Latex>;
-            })}
+            {step.equationOptions?.map(option => showEquationOption(option))}
           </p>
           {step.info && !showMore &&
             <button className="flex md:mt-3 mt-2 gap-2 md:gap-2.5" onClick={() => setShowMore(true)}>
