@@ -397,7 +397,7 @@ export default function Index() {
         />
       }
       {/* timeline */}
-      {["steps", "suggestions"].includes(step) && <>
+      {["steps", "suggestions"].includes(step) && !isFunction && <>
         <ul className="container mx-auto w-full h-full relative">
           {data?.steps?.map((s: MathStep, index: number) =>
             <li key={`${s.option} ${index}`}>
@@ -414,7 +414,7 @@ export default function Index() {
       </>
       }
       {/* Caso funciones */}
-      {step === "function" && <>
+      {["function", "suggestions"].includes(step) && isFunction && <>
         <ul className="container mx-auto w-full h-full relative">
           {data?.steps?.map((s: MathStep, index: number) => {
             return (
