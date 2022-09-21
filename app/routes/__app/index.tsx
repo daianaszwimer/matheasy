@@ -7,7 +7,15 @@ import Latex from "react-latex-next";
 import linkIcon from "~/assets/link.svg";
 import infoIcon from "~/assets/info.svg";
 
-type MathStep = {option: string, equationOption: string, equation?: string, info?: string}
+type MathStep = {
+  option: string,
+  equationOption?: string,
+  equationOptions?: {
+    content: string;
+    equationOptionType: "TEXT" | "LATEX"
+  }[],
+  info?: string
+}
 
 type Tag = "Equation" | "Function";
 
@@ -216,6 +224,8 @@ interface FunctionSteProps {
 
 function FunctionStep({ step, order }: FunctionSteProps) {
   const element = useRef<HTMLDivElement>(null);
+  const [showMore, setShowMore] = useState(false);
+
   useEffect(() => {
     if (order === 0) {
       if (element?.current) {
@@ -237,9 +247,28 @@ function FunctionStep({ step, order }: FunctionSteProps) {
       <div className="w-full flex">
         <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
           <p className="font-bold text-neutral-900 text-md md:mb-3 mb-2">{step.option}</p>
-          <p className="text-sm leading-snug tracking-wide text-neutral-900">{step.equationOption}</p>
-          {step.equation &&
-            <p className="text-sm leading-snug tracking-wide text-neutral-900"><Latex>{`$${step.equation}$`}</Latex></p>
+          <p className="text-sm leading-snug tracking-wide text-neutral-900">
+            {step.equationOptions?.map(option => {
+              if (option.equationOptionType === "TEXT") {
+                return option.content;
+              }
+              return <Latex key={option.content}>{`$${option.content}$`}</Latex>;
+            })}
+          </p>
+          {step.info && !showMore &&
+            <button className="flex md:mt-3 mt-2 gap-2 md:gap-2.5" onClick={() => setShowMore(true)}>
+              <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
+              <p className="text-xs underline text-neutral-800 cursor-pointer">Ver más</p>
+            </button>
+          }
+          {showMore &&
+            <div className="md:mt-3 mt-2 space-y-2">
+              <button className="flex gap-2" onClick={() => setShowMore(false)}>
+                <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
+                <p className="text-xs underline text-neutral-800 cursor-pointer">Ver menos</p>
+              </button>
+              <p className="text-xs text-neutral-800">{step.info}</p>
+            </div>
           }
         </div>
       </div>
