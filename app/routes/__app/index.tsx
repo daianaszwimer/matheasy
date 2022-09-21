@@ -286,7 +286,7 @@ function Button({ text, onClick }: {text: string; onClick(): void}) {
     <button
       type="submit"
       onClick={onClick}
-      className="w-full font-bold block w-full p-3.5 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+      className="w-full font-bold block w-full md:px-6 md:py-4 px-4 py-2 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
     >
       {text}
     </button>
@@ -424,13 +424,17 @@ export default function Index() {
             );
           })}
         </ul>
+        <Button
+          text="Ver ejercicios parecidos"
+          onClick={() => setStep("suggestions")}
+        />
       </>
       }
       {step === "suggestions" && <div>Sugerencias</div>}
       {!!data?.result && !data?.error &&
         <div className="flex flex-col md:flex-row gap-3 md:items-center items-start">
           <button
-            className="rounded-lg text-sm p-3 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
+            className="justify-center rounded-lg text-sm md:p-3 p-2 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
             onClick={async () => {
               const link = `${url}?text=${encodeURIComponent(data?.text?.replace("+", "%2B") || "")}`;
               if ("clipboard" in navigator) {
