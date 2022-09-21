@@ -345,7 +345,7 @@ export default function Index() {
     <>
       <h1 className="text-2xl md:text-3xl font-bold text-center">
         <span className="mr-2">&#128221;</span>
-        Ingresá el enunciado de matemática
+        Ingresá el enunciado matemático
       </h1>
       <Form method="post">
         <div className="flex-col h-full w-full mx-auto">
@@ -366,8 +366,8 @@ export default function Index() {
           <div className="mt-4">
             <Button
               text={transition.state === "submitting"
-                ? "Calculando expresión matemática..."
-                : "Calcular expresión matemática"}
+                ? "Calculando..."
+                : "Calcular"}
               onClick={() => setStep("first")}
             />
           </div>
@@ -389,7 +389,7 @@ export default function Index() {
       )}
       {!!data?.result && !data?.error &&
         <Button
-          text={isFunction ? "Ver dominio, imagen, raíces y ordenada al origen" : "Ver el paso a paso de la resolución"}
+          text={isFunction ? "Ver análisis de la función" : "Ver paso a paso"}
           onClick={() => {
             setStep(isFunction ? "function" : "steps");
             setStepByStep(0);
@@ -397,7 +397,7 @@ export default function Index() {
         />
       }
       {/* timeline */}
-      {["steps", "suggestions"].includes(step) && <>
+      {["steps", "suggestions"].includes(step) && !isFunction && <>
         <ul className="container mx-auto w-full h-full relative">
           {data?.steps?.map((s: MathStep, index: number) =>
             <li key={`${s.option} ${index}`}>
@@ -414,7 +414,7 @@ export default function Index() {
       </>
       }
       {/* Caso funciones */}
-      {step === "function" && <>
+      {["function", "suggestions"].includes(step) && isFunction && <>
         <ul className="container mx-auto w-full h-full relative">
           {data?.steps?.map((s: MathStep, index: number) => {
             return (
