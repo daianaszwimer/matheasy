@@ -366,8 +366,8 @@ export default function Index() {
           <div className="mt-4">
             <Button
               text={transition.state === "submitting"
-                ? "Calculando expresión matemática..."
-                : "Calcular expresión matemática"}
+                ? "Calculando..."
+                : "Calcular"}
               onClick={() => setStep("first")}
             />
           </div>
@@ -389,7 +389,7 @@ export default function Index() {
       )}
       {!!data?.result && !data?.error &&
         <Button
-          text={isFunction ? "Ver dominio, imagen, raíces y ordenada al origen" : "Ver el paso a paso de la resolución"}
+          text={isFunction ? "Ver análisis de la función" : "Ver paso a paso"}
           onClick={() => {
             setStep(isFunction ? "function" : "steps");
             setStepByStep(0);
