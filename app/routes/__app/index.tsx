@@ -359,7 +359,7 @@ export default function Index() {
               name="problem"
               defaultValue={defaultText}
               required
-              placeholder="¿Cuánto es 5 más 2?"
+              placeholder="Despejar x de la siguiente ecuación: x + 8 = 9"
               className="overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
             />
           </div>
@@ -384,7 +384,7 @@ export default function Index() {
       )}
       {!!data?.error && (
         <div className="font-medium space-y-2">
-          <p className="text-xl font-bold">{data?.result && data?.type ? `Ups! No podemos resolver el paso a paso, pero sabemos la expresión y que se trata de una ${tipos[data.type]}` : data.error}</p>
+          <p className="text-xl font-bold">{data?.result && data?.type ? `¡Ups! No podemos resolver el paso a paso, pero sabemos la expresión y que se trata de una ${tipos[data.type]}` : data.error}</p>
         </div>
       )}
       {!!data?.result && !data?.error &&
