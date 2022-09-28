@@ -73,7 +73,7 @@ export const action: ActionFunction = async({ request }) => {
     // @ts-ignore
     if (result.error || result.result === "") {
       return json<ActionData>({
-        error: "Ups! No puedo entender ese enunciado. Probá con otro",
+        error: "¡Ups! No puedo entender ese enunciado. Probá con otro",
       });
     }
 
@@ -112,7 +112,7 @@ export const action: ActionFunction = async({ request }) => {
   } catch(error) {
     console.log(error);
     return json<ActionData>({
-      error: "Ups! Algo falló, inténtalo nuevamente",
+      error: "¡Ups! Algo falló, inténtalo nuevamente",
       result: result.result.expression,
       type: result.result.tag
     });
@@ -447,10 +447,10 @@ export default function Index() {
             }}
           >
             <img src={linkIcon} alt="" className="w-4"/>
-            <p>Copia el link al ejercicio y compartilo!</p>
+            <p>¡Copia el link al ejercicio y compartilo!</p>
           </button>
           <div className={`bg-green-50 border-l-8 border-green-500 p-3 w-fit rounded-md transition-opacity ${hasLinkCopied ? "opacity-100" : "opacity-0"}`}>
-            <p className="text-green-900 text-sm font-bold">Copiado!</p>
+            <p className="text-green-900 text-sm font-bold">¡Copiado!</p>
           </div>
         </div>
       }
