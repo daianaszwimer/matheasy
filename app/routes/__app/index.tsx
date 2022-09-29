@@ -299,6 +299,7 @@ export default function Index() {
   const { defaultText, url } = useLoaderData<LoaderData>();
   const [hasLinkCopied, setHasLinkCopied] = useState(false);
   const [step, setStep] = useState<Steps>("first");
+  const calculator = useRef<HTMLDivElement>(null);
   const [stepByStep, setStepByStep] = useState<number>(0);
   const isFunction = data?.type === "Function";
   const offerSuggestions = step === "steps" && data?.steps?.length && stepByStep === data?.steps?.length - 1;
@@ -319,6 +320,16 @@ export default function Index() {
   useEffect(() => {
     setHasLinkCopied(false);
   }, [data?.result]);
+
+  useEffect(() => {
+    if (!calculator?.current || "function" !== step || !data?.result) {
+      return;
+    }
+    // todo: hacer clear
+    // @ts-ignore
+    let element = window.Desmos.GraphingCalculator(calculator.current);
+    element.setExpression({ id: "graph1", latex: `f(x) = ${data.result}` });
+  }, [calculator, step, data?.result]);
 
   useEffect(() => {
     if (!data?.text) return;
@@ -405,12 +416,12 @@ export default function Index() {
             </li>
           )}
         </ul>
-        {(offerSuggestions || step === "suggestions") &&
-          <Button
-            text="Ver ejercicios parecidos"
-            onClick={() => setStep("suggestions")}
-          />
-        }
+        {/*{(offerSuggestions || step === "suggestions") &&*/}
+        {/*  <Button*/}
+        {/*    text="Ver ejercicios parecidos"*/}
+        {/*    onClick={() => setStep("suggestions")}*/}
+        {/*  />*/}
+        {/*}*/}
       </>
       }
       {/* Caso funciones */}
@@ -424,13 +435,14 @@ export default function Index() {
             );
           })}
         </ul>
-        <Button
-          text="Ver ejercicios parecidos"
-          onClick={() => setStep("suggestions")}
-        />
+        <div ref={calculator} id="calculator" style={{ "width": "100%", "height": "400px" }}></div>
+        {/*<Button*/}
+        {/*  text="Ver ejercicios parecidos"*/}
+        {/*  onClick={() => setStep("suggestions")}*/}
+        {/*/>*/}
       </>
       }
-      {step === "suggestions" && <div>Sugerencias</div>}
+      {/*{step === "suggestions" && <div>Sugerencias</div>}*/}
       {!!data?.result && !data?.error &&
         <div className="flex flex-col md:flex-row gap-3 md:items-center items-start">
           <button
