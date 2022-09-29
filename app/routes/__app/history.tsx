@@ -14,7 +14,7 @@ export default function History() {
     {history.length > 0 ?
       <>
         <h2 className="text-md md:text-xl font-bold text-white text-center">
-          Hacé click en el enunciado que quieras ver
+          ¡Hacé clic en el enunciado que quieras repasar!
         </h2>
         <ul className="list-disc space-y-6">
           {history.reverse().map(element => (
@@ -25,7 +25,7 @@ export default function History() {
         </ul>
       </> :
       <h2 className="text-xl font-bold text-white text-center">
-        Nada por aquí! Resolvé ejercicios con MathEasy para ver tu historial
+        ¡Nada por aquí! A medida que resuelvas ejercicios tu historial crecerá
       </h2>}
   </>);
 }
