@@ -177,7 +177,7 @@ function Step({ hide, step, onClick, order, isNext }: StepProps) {
             onClick={onClick}
             className="md:text-base text-sm absolute rounded-lg font-bold md:p-4 p-3 bg-indigo-500 hover:bg-indigo-600"
             style={{ left: "calc(50% - 60px)" }}>
-            Siguiente paso
+            {order === 1 ? "Primer paso" : "Siguiente paso"}
           </button>
         }
       </div>
@@ -322,6 +322,11 @@ export default function Index() {
   }, [data?.result]);
 
   useEffect(() => {
+    setStep(isFunction ? "function" : "steps");
+    setStepByStep(-1);
+  }, [data?.result, data?.error, isFunction]);
+
+  useEffect(() => {
     if (!calculator?.current || "function" !== step || !data?.result) {
       return;
     }
@@ -371,7 +376,7 @@ export default function Index() {
               defaultValue={defaultText}
               required
               placeholder="Despejar x de la siguiente ecuación: x + 8 = 9"
-              className="overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+              className="overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
             />
           </div>
           <div className="mt-4">
@@ -385,12 +390,17 @@ export default function Index() {
         </div>
       </Form>
       {!!data?.result && (
-        <div className="font-medium space-y-2 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
-          <p className="text-md font-bold text-neutral-900">
-            <Latex>
-              {isFunction ? `$f(x) = ${data.result}$` : `$${data.result}$`}
-            </Latex>
+        <div className="space-y-2">
+          <p className="text-lg font-bold text-white">
+            La expresión matemática es:
           </p>
+          <div className="font-medium space-y-2 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+            <p className="text-md font-bold text-neutral-900">
+              <Latex>
+                {isFunction ? `$f(x) = ${data.result}$` : `$${data.result}$`}
+              </Latex>
+            </p>
+          </div>
         </div>
       )}
       {!!data?.error && (
@@ -398,15 +408,6 @@ export default function Index() {
           <p className="text-xl font-bold">{data?.result && data?.type ? `¡Ups! No podemos resolver el paso a paso, pero sabemos la expresión y que se trata de una ${tipos[data.type]}` : data.error}</p>
         </div>
       )}
-      {!!data?.result && !data?.error &&
-        <Button
-          text={isFunction ? "Ver análisis de la función" : "Ver paso a paso"}
-          onClick={() => {
-            setStep(isFunction ? "function" : "steps");
-            setStepByStep(0);
-          }}
-        />
-      }
       {/* timeline */}
       {["steps", "suggestions"].includes(step) && !isFunction && <>
         <ul className="container mx-auto w-full h-full relative">
