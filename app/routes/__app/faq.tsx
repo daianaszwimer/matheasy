@@ -23,7 +23,7 @@ let content = [
   },
   {
     question: "¿Qué se guarda en el historial?",
-    answer: "En \"Historial\" guardamos los últimos 5 enunciados que calculaste en el navegador con MathEasy. Es decir, si usas el celular y luego la computadora, el historial se guarda de manera local, por lo que no podrás ver el historial del celular en la computadora o viceversa.\nEn MathEasy no guardamos ningún dato tuyo 😉"
+    answer: "En \"Historial\" guardamos los últimos 5 enunciados que calculaste en el navegador con MathEasy.\nEl historial se guarda de manera local, si por ejemplo usas MathEasy en la computadora y el celular, no podrás ver el historial del celular en la computadora o viceversa.\nEn MathEasy no guardamos ningún dato tuyo 😉"
   },
   {
     question: "¿Puedo compartir mis resultados?",
