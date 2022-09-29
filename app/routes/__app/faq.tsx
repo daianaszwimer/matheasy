@@ -22,6 +22,10 @@ let content = [
     answer: "En la sección Historial podrás hacer clic en los enunciados que ya consultaste 😉. Esta acción te llevará a la pantalla de Inicio y solo tendrás que apretar el botón “Calcular” para volver a obtener la expresión matemática."
   },
   {
+    question: "¿Qué se guarda en el historial?",
+    answer: "En \"Historial\" guardamos los últimos 5 enunciados que calculaste en el navegador con MathEasy.\nEl historial se guarda de manera local, si por ejemplo usas MathEasy en la computadora y el celular, no podrás ver el historial del celular en la computadora o viceversa.\nEn MathEasy no guardamos ningún dato tuyo 😉"
+  },
+  {
     question: "¿Puedo compartir mis resultados?",
     answer: "¡Sí! Desde MathEasy creemos que el aprendizaje junto a otras personas es mucho más enriquecedor 👥. Por eso podrás hacer clic en “¡Copiá el link al ejercicio y compartilo!” para enviarselo a quien quieras."
   },
