@@ -185,7 +185,7 @@ function Step({ hide, step, onClick, order, isNext, showAll }: StepProps) {
               onClick={showAll}
               className="md:text-base text-sm rounded-lg md:p-4 p-3 bg-gray-900 hover:bg-black"
             >
-              Todos los pasos
+              Saltear pasos
             </button>
           </div>
         }
