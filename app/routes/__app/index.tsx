@@ -1,4 +1,4 @@
-import { Form, useActionData, useLoaderData, useTransition } from "@remix-run/react";
+import { Form, useActionData, useLoaderData, useLocation, useTransition } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type {  ActionFunction , LoaderFunction } from "@remix-run/node";
 import { useEffect, useRef, useState } from "react";
@@ -124,7 +124,7 @@ let tipos = {
   "Equation": "ecuación"
 };
 
-type Steps = "first" | "steps" | "suggestions" | "function"
+type Steps = "steps" | "suggestions" | "function"
 
 interface StepProps {
   hide: boolean;
@@ -132,17 +132,17 @@ interface StepProps {
   step: MathStep;
   onClick: () => void;
   isNext: boolean;
+  showAll: () => void;
 }
 
-function Step({ hide, step, onClick, order, isNext }: StepProps) {
+function Step({ hide, step, onClick, order, isNext, showAll }: StepProps) {
   const element = useRef<HTMLDivElement>(null);
   const [showMore, setShowMore] = useState(false);
   useEffect(() => {
     if (!hide && element?.current) {
       element.current.scrollIntoView({
         behavior: "smooth"
-      }
-      );
+      });
     }
   }, [hide, element]);
 
@@ -151,34 +151,43 @@ function Step({ hide, step, onClick, order, isNext }: StepProps) {
       <div
         className="border-white border-l gap-8 items-center w-full wrap overflow-hidden p-5 md:p-10 h-full flex md:ml-5 ml-3">
         <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
-          <p className="mx-auto font-semibold text-md md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+          <p className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
             {order}
           </p>
         </div>
         <button
-          className="w-full flex w-full blur"
+          className="w-full flex blur"
           onClick={onClick}
         >
-          <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
-            <p className="mb-3 font-bold text-neutral-900 text-md flex-1">{step.option}</p>
-            <p className="text-sm leading-snug tracking-wide text-neutral-900">
+          <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2 text-base md:text-lg">
+            <p className="mb-3 text-neutral-900 flex-1">{step.option}</p>
+            <p className="leading-snug tracking-wide text-neutral-900">
               {step.equationOptions?.map(option => showEquationOption(option))}
             </p>
             {step.info && !showMore &&
-              <div className="flex md:mt-3 mt-2 gap-2 md:gap-2.5">
-                <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
-                <p className="text-xs underline text-neutral-800 cursor-pointer">Ver más</p>
+              <div className="flex md:mt-3 mt-2 gap-1.5">
+                <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
+                <p className="text-sm underline text-neutral-800 cursor-pointer">Ver más</p>
               </div>
             }
           </div>
         </button>
         {isNext &&
-          <button
-            onClick={onClick}
-            className="md:text-base text-sm absolute rounded-lg font-bold md:p-4 p-3 bg-indigo-500 hover:bg-indigo-600"
-            style={{ left: "calc(50% - 60px)" }}>
-            {order === 1 ? "Primer paso" : "Siguiente paso"}
-          </button>
+          <div className="flex gap-3 absolute justify-center md:w-[calc(100%_-_82px)] w-[calc(100%_-_41px)]">
+            <button
+              onClick={onClick}
+              className="md:text-base text-sm rounded-lg md:p-4 p-3 bg-indigo-500 hover:bg-indigo-600"
+            >
+              {order === 1 ? "Primer paso" : "Siguiente paso"}
+            </button>
+            {/* todo: si es el ultimo no mostrar boton */}
+            <button
+              onClick={showAll}
+              className="md:text-base text-sm rounded-lg md:p-4 p-3 bg-gray-900 hover:bg-black"
+            >
+              Saltear pasos
+            </button>
+          </div>
         }
       </div>
     );
@@ -187,31 +196,31 @@ function Step({ hide, step, onClick, order, isNext }: StepProps) {
     <div ref={element}
       className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
       <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
-        <p className="mx-auto font-semibold text-md md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+        <p className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
           {order}
         </p>
       </div>
-      <div className="w-full flex">
-        <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
-          <div className="flex items-center gap-2 md:gap-2.5 md:mb-3 mb-2">
-            <p className="font-bold text-neutral-900 text-md flex-1">{step.option}</p>
+      <div className="w-full flex text-base md:text-lg">
+        <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+          <div className="flex items-center gap-1.5 md:mb-3 mb-2">
+            <p className="text-neutral-900 flex-1">{step.option}</p>
           </div>
-          <p className="text-sm leading-snug tracking-wide text-neutral-900">
+          <p className="leading-snug tracking-wide text-neutral-900">
             {step.equationOptions?.map(option => showEquationOption(option))}
           </p>
           {step.info && !showMore &&
-            <button className="flex md:mt-3 mt-2 gap-2 md:gap-2.5" onClick={() => setShowMore(true)}>
-              <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
-              <p className="text-xs underline text-neutral-800 cursor-pointer">Ver más</p>
+            <button className="flex md:mt-3 mt-2 gap-1.5" onClick={() => setShowMore(true)}>
+              <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
+              <p className="text-sm underline text-neutral-800 cursor-pointer">Ver más</p>
             </button>
           }
           {showMore &&
             <div className="md:mt-3 mt-2 space-y-2">
               <button className="flex gap-2" onClick={() => setShowMore(false)}>
-                <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
-                <p className="text-xs underline text-neutral-800 cursor-pointer">Ver menos</p>
+                <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
+                <p className="text-sm underline text-neutral-800 cursor-pointer">Ver menos</p>
               </button>
-              <p className="text-xs text-neutral-800">{step.info}</p>
+              <p className="text-sm text-neutral-800">{step.info}</p>
             </div>
           }
         </div>
@@ -232,47 +241,36 @@ interface FunctionSteProps {
   step: MathStep;
 }
 
-function FunctionStep({ step, order }: FunctionSteProps) {
-  const element = useRef<HTMLDivElement>(null);
+function FunctionStep({ step }: FunctionSteProps) {
   const [showMore, setShowMore] = useState(false);
 
-  useEffect(() => {
-    if (order === 0) {
-      if (element?.current) {
-        element.current.scrollIntoView({
-          behavior: "smooth"
-        }
-        );
-      }
-    }
-  }, [element, order]);
   return (
-    <div ref={element}
-      className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
+    <div
+      className="font-['computer'] border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
       <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
-        <span className="mx-auto font-semibold text-md md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+        <span className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
           &#10140;
         </span>
       </div>
       <div className="w-full flex">
-        <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
-          <p className="font-bold text-neutral-900 text-md md:mb-3 mb-2">{step.option}</p>
-          <p className="text-sm leading-snug tracking-wide text-neutral-900">
+        <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2 text-base md:text-lg">
+          <p className="text-neutral-900 md:mb-3 mb-2">{step.option}</p>
+          <p className="leading-snug tracking-wide text-neutral-900" id="">
             {step.equationOptions?.map(option => showEquationOption(option))}
           </p>
           {step.info && !showMore &&
-            <button className="flex md:mt-3 mt-2 gap-2 md:gap-2.5" onClick={() => setShowMore(true)}>
-              <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
-              <p className="text-xs underline text-neutral-800 cursor-pointer">Ver más</p>
+            <button className="flex md:mt-3 mt-2 gap-1.5" onClick={() => setShowMore(true)}>
+              <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
+              <p className="text-sm underline text-neutral-800 cursor-pointer">Ver más</p>
             </button>
           }
           {showMore &&
             <div className="md:mt-3 mt-2 space-y-2">
               <button className="flex gap-2" onClick={() => setShowMore(false)}>
-                <img src={infoIcon} alt="information" className="w-4 h-4 my-auto"/>
-                <p className="text-xs underline text-neutral-800 cursor-pointer">Ver menos</p>
+                <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
+                <p className="text-sm underline text-neutral-800 cursor-pointer">Ver menos</p>
               </button>
-              <p className="text-xs text-neutral-800">{step.info}</p>
+              <p className="text-sm text-neutral-800">{step.info}</p>
             </div>
           }
         </div>
@@ -281,11 +279,10 @@ function FunctionStep({ step, order }: FunctionSteProps) {
   );
 }
 
-function Button({ text, onClick }: {text: string; onClick(): void}) {
+function Button({ text }: {text: string}) {
   return (
     <button
       type="submit"
-      onClick={onClick}
       className="w-full font-bold block w-full md:px-6 md:py-4 px-4 py-2 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
     >
       {text}
@@ -298,11 +295,12 @@ export default function Index() {
   const data = useActionData<ActionData>();
   const { defaultText, url } = useLoaderData<LoaderData>();
   const [hasLinkCopied, setHasLinkCopied] = useState(false);
-  const [step, setStep] = useState<Steps>("first");
+  const [step, setStep] = useState<Steps | "">("");
   const calculator = useRef<HTMLDivElement>(null);
   const [stepByStep, setStepByStep] = useState<number>(0);
   const isFunction = data?.type === "Function";
   const offerSuggestions = step === "steps" && data?.steps?.length && stepByStep === data?.steps?.length - 1;
+  const location = useLocation();
 
   useEffect(() => {
     if (!hasLinkCopied) return;
@@ -317,9 +315,6 @@ export default function Index() {
     }
     setStepByStep(prev => prev + 1);
   }
-  useEffect(() => {
-    setHasLinkCopied(false);
-  }, [data?.result]);
 
   useEffect(() => {
     setStep(isFunction ? "function" : "steps");
@@ -347,8 +342,8 @@ export default function Index() {
       localStorage.setItem("ejercicios", JSON.stringify(history));
       return;
     }
-    // me aseguro que hayan como mucho 5 enunciados
-    if (history.length < 5) {
+    // me aseguro que hayan como mucho 10 enunciados
+    if (history.length < 10) {
       history.push(data?.text);
     } else {
       history.shift();
@@ -359,11 +354,11 @@ export default function Index() {
 
   return (
     <>
-      <h1 className="text-2xl md:text-3xl font-bold text-center">
-        <span className="mr-2">&#128221;</span>
+      <h1 className="text-2xl md:text-3xl text-center">
+        <span className="mr-2" aria-hidden>&#128221;</span>
         Ingresá el enunciado matemático
       </h1>
-      <Form method="post">
+      <Form method="post" action={`${location.pathname}${location.search ? location.search : "?index"}`}>
         <div className="flex-col h-full w-full mx-auto">
           <div className="relative rounded-xl overflow-auto">
             <label htmlFor="problem" className="sr-only">
@@ -384,18 +379,17 @@ export default function Index() {
               text={transition.state === "submitting"
                 ? "Calculando..."
                 : "Calcular"}
-              onClick={() => setStep("first")}
             />
           </div>
         </div>
       </Form>
       {!!data?.result && (
-        <div className="space-y-2">
-          <p className="text-lg font-bold text-white">
+        <div className="space-y-2 text-lg">
+          <p className="text-white">
             La expresión matemática es:
           </p>
           <div className="font-medium space-y-2 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
-            <p className="text-md font-bold text-neutral-900">
+            <p className="text-neutral-900">
               <Latex>
                 {isFunction ? `$f(x) = ${data.result}$` : `$${data.result}$`}
               </Latex>
@@ -405,7 +399,7 @@ export default function Index() {
       )}
       {!!data?.error && (
         <div className="font-medium space-y-2">
-          <p className="text-xl font-bold">{data?.result && data?.type ? `¡Ups! No podemos resolver el paso a paso, pero sabemos la expresión y que se trata de una ${tipos[data.type]}` : data.error}</p>
+          <p className="text-xl">{data?.result && data?.type ? `¡Ups! No podemos resolver el paso a paso, pero sabemos la expresión y que se trata de una ${tipos[data.type]}` : data.error}</p>
         </div>
       )}
       {/* timeline */}
@@ -413,7 +407,14 @@ export default function Index() {
         <ul className="container mx-auto w-full h-full relative">
           {data?.steps?.map((s: MathStep, index: number) =>
             <li key={`${s.option} ${index}`}>
-              <Step hide={stepByStep < index} order={index + 1} step={s} onClick={nextStep} isNext={stepByStep === (index - 1)}/>
+              <Step
+                hide={stepByStep < index}
+                order={index + 1}
+                step={s}
+                onClick={nextStep}
+                isNext={stepByStep === (index - 1)}
+                showAll={() => setStepByStep(data?.steps?.length || 0)}
+              />
             </li>
           )}
         </ul>
