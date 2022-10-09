@@ -145,7 +145,9 @@ interface StepProps {
   isLast: boolean;
 }
 
-function Step({ hide, step, onClick, order, isNext, showAll, isLast }: StepProps) {
+function Step(
+  { hide, step, onClick, order, isNext, showAll, isLast }
+    : StepProps) {
   const element = useRef<HTMLDivElement>(null);
   const [showMore, setShowMore] = useState(false);
   useEffect(() => {
