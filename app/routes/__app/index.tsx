@@ -1,7 +1,7 @@
 import { Form, Link, useActionData, useFetcher, useLoaderData, useLocation, useTransition } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type {  ActionFunction , LoaderFunction } from "@remix-run/node";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import styles from "katex/dist/katex.min.css";
 import Latex from "react-latex-next";
 import linkIcon from "~/assets/link.svg";
@@ -176,7 +176,10 @@ function Step(
             <p className="mb-3 text-neutral-900 flex-1">{step.option}</p>
             <p className="leading-snug tracking-wide text-neutral-900">
               {step.equationOptions?.map(
-                (option) => showEquationOption(option)
+                (option) =>
+                  <Fragment key={option.content}>
+                    {showEquationOption(option)}
+                  </Fragment>
               )}
             </p>
             {step.info && !showMore &&
@@ -223,7 +226,9 @@ function Step(
           </div>
           <p className="leading-snug tracking-wide text-neutral-900">
             {step.equationOptions?.map(
-              (option) => showEquationOption(option)
+              (option) => <Fragment key={option.content}>
+                {showEquationOption(option)}
+              </Fragment>
             )}
           </p>
           {step.info && !showMore &&
@@ -252,8 +257,8 @@ function showEquationOption({ content, equationOptionType }: {content: string, e
     return content;
   }
   return <>
-    <p aria-hidden><Latex key={content}>{`$${content}$`}</Latex></p>
-    <p className="sr-only">{content}</p>
+    <span className="inline-block" aria-hidden><Latex key={content}>{`$${content}$`}</Latex></span>
+    <span className="sr-only">{content}</span>
   </>;
 }
 
@@ -278,7 +283,9 @@ function FunctionStep({ step }: FunctionSteProps) {
           <p className="text-neutral-900 md:mb-3 mb-2">{step.option}</p>
           <p className="leading-snug tracking-wide text-neutral-900">
             {step.equationOptions?.map(
-              (option) => showEquationOption(option)
+              (option) => <Fragment key={option.content}>
+                {showEquationOption(option)}
+              </Fragment>
             )}
           </p>
           {step.info && !showMore &&
@@ -328,6 +335,11 @@ export default function Index() {
   const isFunction = response?.type === "Function";
   const offerSuggestions = step === "steps" && response?.steps?.length && stepByStep === response?.steps?.length - 1;
   const [mark, setMark] = useState(false);
+  const graph = useMemo(() => {
+    if (!calculator?.current) return;
+    // @ts-ignore
+    return window.Desmos.GraphingCalculator(calculator.current, { expressionsCollapsed: true, language: "es" });
+  }, [calculator, calculator?.current]);
 
   useEffect(() => {
     if (mark || !autoResolve) return;
@@ -361,17 +373,14 @@ export default function Index() {
     if (!response?.result) return;
     setStep(isFunction ? "function" : "steps");
     setStepByStep(-1);
-  }, [response?.result, response?.error, isFunction]);
+  }, [response?.result, response?.error, isFunction, calculator]);
 
   useEffect(() => {
-    if (!calculator?.current || "function" !== step || !response?.result) {
+    if ("function" !== step || !response?.result || !graph) {
       return;
     }
-    // todo: hacer clear
-    // @ts-ignore
-    let element = window.Desmos.GraphingCalculator(calculator.current);
-    element.setExpression({ id: "graph1", latex: `f(x) = ${response.result}` });
-  }, [calculator, step, response?.result]);
+    graph.setExpression({ id: "graph", latex: `f(x) = ${response.result}` });
+  }, [calculator, step, response?.result, graph]);
 
   useEffect(() => {
     if (!response?.text) return;
@@ -451,7 +460,7 @@ export default function Index() {
         </div>
       )}
       {/* timeline */}
-      {["steps", "suggestions"].includes(step) && !isFunction && <div className="space-y-3">
+      {["steps", "suggestions"].includes(step) && !isFunction && response?.steps?.length > 0 && <div className="space-y-3">
         <p className="text-lg">Los pasos para resolverla son</p>
         <Link target="_blank" to="/faq#pasos" className="text-sm underline text-neutral-300">
           ¿Necesitás ayuda?
@@ -481,6 +490,7 @@ export default function Index() {
       }
       {/* Caso funciones */}
       {["function", "suggestions"].includes(step) && isFunction && <>
+        <div ref={calculator} id="calculator" className="md:h-96 h-56" style={{ "width": "100%" }}></div>
         <ul className="container mx-auto w-full h-full relative">
           {response?.steps?.map((s: MathStep, index: number) => {
             return (
@@ -490,7 +500,6 @@ export default function Index() {
             );
           })}
         </ul>
-        <div ref={calculator} id="calculator" style={{ "width": "100%", "height": "400px" }}></div>
         {/*<Button*/}
         {/*  text="Ver ejercicios parecidos"*/}
         {/*  onClick={() => setStep("suggestions")}*/}

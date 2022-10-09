@@ -824,6 +824,10 @@ select {
   display: block;
 }
 
+.inline-block {
+  display: inline-block;
+}
+
 .flex {
   display: flex;
 }
@@ -842,6 +846,10 @@ select {
 
 .h-3 {
   height: 0.75rem;
+}
+
+.h-56 {
+  height: 14rem;
 }
 
 .min-h-\[calc\(100vh_-_32px_-_16px_-_16px_-_56px\)\] {
@@ -1327,6 +1335,14 @@ select {
 
   .md\:h-8 {
     height: 2rem;
+  }
+
+  .md\:h-10 {
+    height: 2.5rem;
+  }
+
+  .md\:h-96 {
+    height: 24rem;
   }
 
   .md\:w-8 {
