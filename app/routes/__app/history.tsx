@@ -17,10 +17,10 @@ export default function History() {
         <h2 className="text-base md:text-xl text-white text-center">
           ¡Hacé clic en el enunciado que quieras repasar!
         </h2>
-        <ul className="space-y-6">
+        <ul className="space-y-6 list-['\27A1\fe0f']">
           {history.reverse().map(element => (
-            <li key={element}>
-              <Link className="underline" to={`/?index&text=${encodeURI(element.replace("+", "%2B"))}`}>{element}</Link>
+            <li key={element} className="pl-2">
+              <Link className="underline" to={`/?index&text=${encodeURI(element.replace("+", "%2B"))}&h`}>{element}</Link>
             </li>
           ))}
         </ul>

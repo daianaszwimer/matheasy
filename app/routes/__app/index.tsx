@@ -1,4 +1,4 @@
-import { Form, useActionData, useLoaderData, useLocation, useTransition } from "@remix-run/react";
+import { Form, Link, useActionData, useFetcher, useLoaderData, useLocation, useTransition } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type {  ActionFunction , LoaderFunction } from "@remix-run/node";
 import { useEffect, useRef, useState } from "react";
@@ -30,24 +30,31 @@ interface ActionData {
 interface LoaderData {
   defaultText?: string;
   url: string;
+  autoResolve: boolean;
 }
 
 export function links() {
   return [
     {
       rel: "stylesheet",
-      href: "https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;700&display=swap",
+      href: "https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;700&display=swap"
     },
-    { rel: "stylesheet", href: styles },
+    { rel: "stylesheet", href: styles }
   ];
 }
 
 export const loader: LoaderFunction = async ({
-  request,
+  request
 }) => {
   const url = new URL(request.url);
   const defaultText = decodeURIComponent(url.searchParams.get("text") || "");
-  return json<LoaderData>({ defaultText, url: process.env.WEB_URL || "" });
+  // si venis de historial se resuelve automatico
+  const autoResolve = url.searchParams.has("h");
+  return json<LoaderData>({
+    defaultText,
+    url: process.env.WEB_URL || "",
+    autoResolve
+  });
 };
 
 export const action: ActionFunction = async({ request }) => {
@@ -56,24 +63,26 @@ export const action: ActionFunction = async({ request }) => {
     error: null,
     result: {
       expression: null,
-      tag: null,
+      tag: null
     }
   };
   try {
     const text = body.get("problem") as string;
-    const mathExpression = await fetch(`${process.env.API_URL}/math-translation`, {
-      method: "POST",
-      body: JSON.stringify({ text }),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
+    const mathExpression = await fetch(
+      `${process.env.API_URL}/math-translation`,
+      {
+        method: "POST",
+        body: JSON.stringify({ text }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
     result = await mathExpression.json();
     console.log(result);
     // @ts-ignore
     if (result.error || result.result === "") {
       return json<ActionData>({
-        error: "¡Ups! No puedo entender ese enunciado. Probá con otro",
+        error: "¡Ups! No puedo entender ese enunciado. Probá con otro"
       });
     }
 
@@ -107,7 +116,7 @@ export const action: ActionFunction = async({ request }) => {
       steps: steps_ as MathStep[],
       suggestions: suggestions_ as string[],
       text,
-      type: result.result.tag as unknown as Tag,
+      type: result.result.tag as unknown as Tag
     });
   } catch(error) {
     console.log(error);
@@ -133,9 +142,12 @@ interface StepProps {
   onClick: () => void;
   isNext: boolean;
   showAll: () => void;
+  isLast: boolean;
 }
 
-function Step({ hide, step, onClick, order, isNext, showAll }: StepProps) {
+function Step(
+  { hide, step, onClick, order, isNext, showAll, isLast }
+    : StepProps) {
   const element = useRef<HTMLDivElement>(null);
   const [showMore, setShowMore] = useState(false);
   useEffect(() => {
@@ -149,44 +161,48 @@ function Step({ hide, step, onClick, order, isNext, showAll }: StepProps) {
   if (hide) {
     return (
       <div
-        className="border-white border-l gap-8 items-center w-full wrap overflow-hidden p-5 md:p-10 h-full flex md:ml-5 ml-3">
+        className="border-white border-l gap-8 items-center w-full wrap overflow-hidden p-5 md:p-10 h-full flex md:ml-5 ml-3"
+      >
         <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
           <p className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
             {order}
           </p>
         </div>
-        <button
-          className="w-full flex blur"
-          onClick={onClick}
+        <div
+          className="w-full flex blur select-none"
+          aria-hidden
         >
           <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2 text-base md:text-lg">
             <p className="mb-3 text-neutral-900 flex-1">{step.option}</p>
             <p className="leading-snug tracking-wide text-neutral-900">
-              {step.equationOptions?.map(option => showEquationOption(option))}
+              {step.equationOptions?.map(
+                (option) => showEquationOption(option)
+              )}
             </p>
             {step.info && !showMore &&
               <div className="flex md:mt-3 mt-2 gap-1.5">
                 <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
-                <p className="text-sm underline text-neutral-800 cursor-pointer">Ver más</p>
+                <p className="text-sm underline text-neutral-800">Ver más</p>
               </div>
             }
           </div>
-        </button>
+        </div>
         {isNext &&
           <div className="flex gap-3 absolute justify-center md:w-[calc(100%_-_82px)] w-[calc(100%_-_41px)]">
             <button
+              aria-label="Ir al siguiente paso"
               onClick={onClick}
               className="md:text-base text-sm rounded-lg md:p-4 p-3 bg-indigo-500 hover:bg-indigo-600"
             >
               {order === 1 ? "Primer paso" : "Siguiente paso"}
             </button>
-            {/* todo: si es el ultimo no mostrar boton */}
-            <button
+            {!isLast && <button
+              aria-label="Mostrar todos los pasos"
               onClick={showAll}
               className="md:text-base text-sm rounded-lg md:p-4 p-3 bg-gray-900 hover:bg-black"
             >
               Saltear pasos
-            </button>
+            </button>}
           </div>
         }
       </div>
@@ -206,7 +222,9 @@ function Step({ hide, step, onClick, order, isNext, showAll }: StepProps) {
             <p className="text-neutral-900 flex-1">{step.option}</p>
           </div>
           <p className="leading-snug tracking-wide text-neutral-900">
-            {step.equationOptions?.map(option => showEquationOption(option))}
+            {step.equationOptions?.map(
+              (option) => showEquationOption(option)
+            )}
           </p>
           {step.info && !showMore &&
             <button className="flex md:mt-3 mt-2 gap-1.5" onClick={() => setShowMore(true)}>
@@ -233,7 +251,10 @@ function showEquationOption({ content, equationOptionType }: {content: string, e
   if (equationOptionType === "TEXT") {
     return content;
   }
-  return <Latex key={content}>{`$${content}$`}</Latex>;
+  return <>
+    <p aria-hidden><Latex key={content}>{`$${content}$`}</Latex></p>
+    <p className="sr-only">{content}</p>
+  </>;
 }
 
 interface FunctionSteProps {
@@ -255,8 +276,10 @@ function FunctionStep({ step }: FunctionSteProps) {
       <div className="w-full flex">
         <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2 text-base md:text-lg">
           <p className="text-neutral-900 md:mb-3 mb-2">{step.option}</p>
-          <p className="leading-snug tracking-wide text-neutral-900" id="">
-            {step.equationOptions?.map(option => showEquationOption(option))}
+          <p className="leading-snug tracking-wide text-neutral-900">
+            {step.equationOptions?.map(
+              (option) => showEquationOption(option)
+            )}
           </p>
           {step.info && !showMore &&
             <button className="flex md:mt-3 mt-2 gap-1.5" onClick={() => setShowMore(true)}>
@@ -279,9 +302,10 @@ function FunctionStep({ step }: FunctionSteProps) {
   );
 }
 
-function Button({ text }: {text: string}) {
+function Button({ text, disabled }: {text: string, disabled: boolean}) {
   return (
     <button
+      disabled={disabled}
       type="submit"
       className="w-full font-bold block w-full md:px-6 md:py-4 px-4 py-2 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
     >
@@ -293,15 +317,32 @@ function Button({ text }: {text: string}) {
 export default function Index() {
   const transition = useTransition();
   const data = useActionData<ActionData>();
-  const { defaultText, url } = useLoaderData<LoaderData>();
+  const { defaultText, url, autoResolve } = useLoaderData<LoaderData>();
   const [hasLinkCopied, setHasLinkCopied] = useState(false);
   const [step, setStep] = useState<Steps | "">("");
   const calculator = useRef<HTMLDivElement>(null);
   const [stepByStep, setStepByStep] = useState<number>(0);
-  const isFunction = data?.type === "Function";
-  const offerSuggestions = step === "steps" && data?.steps?.length && stepByStep === data?.steps?.length - 1;
   const location = useLocation();
+  const fetcher = useFetcher();
+  let response = data || fetcher.data;
+  const isFunction = response?.type === "Function";
+  const offerSuggestions = step === "steps" && response?.steps?.length && stepByStep === response?.steps?.length - 1;
+  const [mark, setMark] = useState(false);
 
+  useEffect(() => {
+    if (mark || !autoResolve) return;
+    setMark(true);
+    fetcher.submit(
+      { problem: defaultText || "" },
+      { method: "post", action: `${location.pathname}${location.search ? location.search : "?index"}` }
+    );
+  }, [
+    autoResolve,
+    defaultText,
+    fetcher,
+    location,
+    mark
+  ]);
   useEffect(() => {
     if (!hasLinkCopied) return;
     const timer = setTimeout(() => { setHasLinkCopied(false); }, 2000);
@@ -313,29 +354,30 @@ export default function Index() {
       // estoy en el ultimo step, voy a suggestions
       setStep("suggestions");
     }
-    setStepByStep(prev => prev + 1);
+    setStepByStep((prev) => prev + 1);
   }
 
   useEffect(() => {
+    if (!response?.result) return;
     setStep(isFunction ? "function" : "steps");
     setStepByStep(-1);
-  }, [data?.result, data?.error, isFunction]);
+  }, [response?.result, response?.error, isFunction]);
 
   useEffect(() => {
-    if (!calculator?.current || "function" !== step || !data?.result) {
+    if (!calculator?.current || "function" !== step || !response?.result) {
       return;
     }
     // todo: hacer clear
     // @ts-ignore
     let element = window.Desmos.GraphingCalculator(calculator.current);
-    element.setExpression({ id: "graph1", latex: `f(x) = ${data.result}` });
-  }, [calculator, step, data?.result]);
+    element.setExpression({ id: "graph1", latex: `f(x) = ${response.result}` });
+  }, [calculator, step, response?.result]);
 
   useEffect(() => {
-    if (!data?.text) return;
+    if (!response?.text) return;
     let history = JSON.parse(localStorage.getItem("ejercicios") || "[]");
     // si el elemento ya existe moverlo de lugar al ultimo
-    let index = history.indexOf(data?.text);
+    let index = history.indexOf(response?.text);
     if (index !== -1) {
       // muevo el elemento al final de la lista
       history.push(history.splice(index, 1)[0]);
@@ -344,68 +386,78 @@ export default function Index() {
     }
     // me aseguro que hayan como mucho 10 enunciados
     if (history.length < 10) {
-      history.push(data?.text);
+      history.push(response?.text);
     } else {
       history.shift();
-      history.push(data?.text);
+      history.push(response?.text);
     }
     localStorage.setItem("ejercicios", JSON.stringify(history));
-  }, [data?.text]);
+  }, [response?.text]);
 
   return (
     <>
       <h1 className="text-2xl md:text-3xl text-center">
         <span className="mr-2" aria-hidden>&#128221;</span>
-        Ingresá el enunciado matemático
+        Analizar un ejercicio
       </h1>
       <Form method="post" action={`${location.pathname}${location.search ? location.search : "?index"}`}>
         <div className="flex-col h-full w-full mx-auto">
-          <div className="relative rounded-xl overflow-auto">
-            <label htmlFor="problem" className="sr-only">
-              Enunciado de matemática
+          <div className="rounded-xl overflow-auto space-y-2 text-lg">
+            <label htmlFor="problem">
+              Ingresa el enunciado matemático
             </label>
             <textarea
-              disabled={transition.state === "submitting"}
+              disabled={transition.state !== "idle" || fetcher.state !== "idle"}
               id="problem"
               name="problem"
               defaultValue={defaultText}
               required
               placeholder="Despejar x de la siguiente ecuación: x + 8 = 9"
-              className="overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+              className="min-h-fit overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
             />
           </div>
-          <div className="mt-4">
+          <div className="mt-3">
             <Button
-              text={transition.state === "submitting"
+              disabled={transition.state !== "idle" || fetcher.state !== "idle"}
+              text={transition.state !== "idle" || fetcher.state !== "idle"
                 ? "Calculando..."
                 : "Calcular"}
             />
           </div>
         </div>
       </Form>
-      {!!data?.result && (
+      {!!response?.result && (
         <div className="space-y-2 text-lg">
-          <p className="text-white">
-            La expresión matemática es:
+          <p>
+            La expresión matemática es
           </p>
-          <div className="font-medium space-y-2 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
-            <p className="text-neutral-900">
+          <div className="font-medium bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+            <p className="text-neutral-900" aria-hidden>
               <Latex>
-                {isFunction ? `$f(x) = ${data.result}$` : `$${data.result}$`}
+                {isFunction ?
+                  `$f(x) = ${response.result}$` : `$${response.result}$`}
               </Latex>
+            </p>
+            <p className="sr-only">
+              {isFunction ?
+                `f(x) = ${response.result}` : response.result}
             </p>
           </div>
         </div>
       )}
-      {!!data?.error && (
-        <div className="font-medium space-y-2">
-          <p className="text-xl">{data?.result && data?.type ? `¡Ups! No podemos resolver el paso a paso, pero sabemos la expresión y que se trata de una ${tipos[data.type]}` : data.error}</p>
+      {!!response?.error && (
+        <div className="font-medium">
+          <p className="text-xl">{response?.result && response?.type ? `¡Ups! No podemos resolver el paso a paso, pero sabemos la expresión y que se trata de una ${tipos[response.type as Tag]}` : response.error}</p>
         </div>
       )}
       {/* timeline */}
-      {["steps", "suggestions"].includes(step) && !isFunction && <>
+      {["steps", "suggestions"].includes(step) && !isFunction && <div className="space-y-3">
+        <p className="text-lg">Los pasos para resolverla son</p>
+        <Link target="_blank" to="/faq#pasos" className="text-sm underline text-neutral-300">
+          ¿Necesitás ayuda?
+        </Link>
         <ul className="container mx-auto w-full h-full relative">
-          {data?.steps?.map((s: MathStep, index: number) =>
+          {response?.steps?.map((s: MathStep, index: number) =>
             <li key={`${s.option} ${index}`}>
               <Step
                 hide={stepByStep < index}
@@ -413,7 +465,8 @@ export default function Index() {
                 step={s}
                 onClick={nextStep}
                 isNext={stepByStep === (index - 1)}
-                showAll={() => setStepByStep(data?.steps?.length || 0)}
+                isLast={index === response?.steps?.length - 1}
+                showAll={() => setStepByStep(response?.steps?.length || 0)}
               />
             </li>
           )}
@@ -424,12 +477,12 @@ export default function Index() {
         {/*    onClick={() => setStep("suggestions")}*/}
         {/*  />*/}
         {/*}*/}
-      </>
+      </div>
       }
       {/* Caso funciones */}
       {["function", "suggestions"].includes(step) && isFunction && <>
         <ul className="container mx-auto w-full h-full relative">
-          {data?.steps?.map((s: MathStep, index: number) => {
+          {response?.steps?.map((s: MathStep, index: number) => {
             return (
               <li key={`${s.option} ${index}`}>
                 <FunctionStep order={index} step={s}/>
@@ -445,12 +498,13 @@ export default function Index() {
       </>
       }
       {/*{step === "suggestions" && <div>Sugerencias</div>}*/}
-      {!!data?.result && !data?.error &&
+      {!!response?.result && !response?.error &&
         <div className="flex flex-col md:flex-row gap-3 md:items-center items-start">
           <button
+            aria-label="Copiar link al ejercicio"
             className="justify-center rounded-lg text-sm md:p-3 p-2 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
             onClick={async () => {
-              const link = `${url}?text=${encodeURIComponent(data?.text?.replace("+", "%2B") || "")}`;
+              const link = `${url}?text=${encodeURIComponent(response?.text?.replace("+", "%2B") || "")}`;
               if ("clipboard" in navigator) {
                 await navigator.clipboard.writeText(link);
                 setHasLinkCopied(true);
@@ -461,9 +515,9 @@ export default function Index() {
             }}
           >
             <img src={linkIcon} alt="" className="w-4"/>
-            <p>¡Copia el link al ejercicio y compartilo!</p>
+            <p aria-hidden>¡Copia el link al ejercicio y compartilo!</p>
           </button>
-          <div className={`bg-green-50 border-l-8 border-green-500 p-3 w-fit rounded-md transition-opacity ${hasLinkCopied ? "opacity-100" : "opacity-0"}`}>
+          <div className={`bg-green-50 border-l-8 border-green-500 p-3 w-fit rounded-md transition-opacity ${hasLinkCopied ? "opacity-100" : "opacity-0 invisible"}`}>
             <p className="text-green-900 text-sm font-bold">¡Copiado!</p>
           </div>
         </div>

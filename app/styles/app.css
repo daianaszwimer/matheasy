@@ -766,6 +766,10 @@ select {
   border-width: 0;
 }
 
+.invisible {
+  visibility: hidden;
+}
+
 .absolute {
   position: absolute;
 }
@@ -812,8 +816,8 @@ select {
   margin-bottom: 0.5rem;
 }
 
-.mt-4 {
-  margin-top: 1rem;
+.mt-3 {
+  margin-top: 0.75rem;
 }
 
 .block {
@@ -842,6 +846,12 @@ select {
 
 .min-h-\[calc\(100vh_-_32px_-_16px_-_16px_-_56px\)\] {
   min-height: calc(100vh - 32px - 16px - 16px - 56px);
+}
+
+.min-h-fit {
+  min-height: -webkit-fit-content;
+  min-height: -moz-fit-content;
+  min-height: fit-content;
 }
 
 .w-full {
@@ -878,12 +888,26 @@ select {
   cursor: pointer;
 }
 
+.select-none {
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+
 .resize-y {
   resize: vertical;
 }
 
+.list-\[\'-\'\] {
+  list-style-type: '-';
+}
+
 .list-disc {
   list-style-type: disc;
+}
+
+.list-\[\'\\27A1\\fe0f\'\] {
+  list-style-type: '\27A1\fe0f';
 }
 
 .flex-row {
@@ -950,16 +974,18 @@ select {
   margin-bottom: calc(0.5rem * var(--tw-space-y-reverse));
 }
 
+.space-y-3 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.75rem * var(--tw-space-y-reverse));
+}
+
 .overflow-auto {
   overflow: auto;
 }
 
 .overflow-hidden {
   overflow: hidden;
-}
-
-.whitespace-pre-line {
-  white-space: pre-line;
 }
 
 .rounded-full {
@@ -1043,6 +1069,10 @@ select {
   background-color: rgb(240 253 244 / var(--tw-bg-opacity));
 }
 
+.bg-repeat {
+  background-repeat: repeat;
+}
+
 .p-4 {
   padding: 1rem;
 }
@@ -1064,11 +1094,6 @@ select {
   padding-right: 0.75rem;
 }
 
-.py-5 {
-  padding-top: 1.25rem;
-  padding-bottom: 1.25rem;
-}
-
 .py-4 {
   padding-top: 1rem;
   padding-bottom: 1rem;
@@ -1086,6 +1111,10 @@ select {
 
 .pt-7 {
   padding-top: 1.75rem;
+}
+
+.pl-2 {
+  padding-left: 0.5rem;
 }
 
 .text-center {
@@ -1123,6 +1152,11 @@ select {
 .text-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
 }
 
 .font-medium {
@@ -1163,6 +1197,11 @@ select {
 .text-green-900 {
   --tw-text-opacity: 1;
   color: rgb(20 83 45 / var(--tw-text-opacity));
+}
+
+.text-neutral-300 {
+  --tw-text-opacity: 1;
+  color: rgb(212 212 212 / var(--tw-text-opacity));
 }
 
 .underline {
@@ -1264,8 +1303,8 @@ select {
     margin-right: auto;
   }
 
-  .sm\:max-w-2xl {
-    max-width: 42rem;
+  .sm\:max-w-3xl {
+    max-width: 48rem;
   }
 }
 
@@ -1366,5 +1405,12 @@ select {
   .md\:text-base {
     font-size: 1rem;
     line-height: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:px-0 {
+    padding-left: 0px;
+    padding-right: 0px;
   }
 }
