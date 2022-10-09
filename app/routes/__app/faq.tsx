@@ -17,7 +17,7 @@ export default function FAQ() {
           <Link to="/" className="underline">Inicio</Link>
           {" encontrarás un área de texto donde podés escribir el enunciado matemático (¡sí, tal cual te lo dió tu profe! "}
           <span aria-hidden>&#128588;</span>
-          {" ). Una vez lo hayas escrito, podrás hacer clic en el botón \"Calcular\" para obtener la expresión matemática correspondiente a tu ejercicio."}
+          {" ). Una vez lo hayas escrito, podrás hacer click en el botón \"Calcular\" para obtener la expresión matemática correspondiente a tu ejercicio."}
         </p>
         <p>
           {"Si esta expresión se corresponde con una función "}
@@ -40,7 +40,14 @@ export default function FAQ() {
       question: "¿Cómo funciona el paso a paso?",
       id: "pasos",
       answer: () => <>
-        <p>Completar</p>
+        <p>
+          {"En MathEasy en vez de darte la resolución del ejercicio de una, te brindamos el paso a paso para que puedas ir resolviéndolo a tu ritmo y aprendiendo. ¡Pero sin spoilers! "}
+          <span aria-hidden>&#128561;</span>
+          {" Es por esto que tenés dos opciones:"}
+        </p>
+        <p>
+          Podés elegir entre ver <span className="font-bold">paso por paso</span>, haciendo click en el botón de "Primer/Siguiente paso" o bien ver <span className="font-bold">todos los pasos de una</span>, con el botón de "Saltear pasos". ¡Queremos que vos elijas cuál opción preferís!
+        </p>
       </>
     },
     {
@@ -139,7 +146,7 @@ export default function FAQ() {
         <p>
           ¡Magia!{" "}
           <span aria-hidden>&#129668;</span>
-          {"Son las artes oscuras de la Inteligencia Artificial (en realidad es una disciplina de las Ciencias de la Computación "}
+          {" Son las artes oscuras de la Inteligencia Artificial (en realidad es una disciplina de las Ciencias de la Computación "}
           <span aria-hidden>&#129323;</span>
           {" ), que intenta replicar y desarrollar la inteligencia y sus procesos implícitos a través de computadoras. Si bien la Inteligencia Artificial la encontramos en el día a día en diferentes ámbitos (desde los autos que se manejan solos "}
           <span aria-hidden>&#128663;</span>
@@ -163,6 +170,7 @@ export default function FAQ() {
         </li>
       ))}
     </ul>
+    <p>Tenés más dudas? Nos podés enviar un mail a <a className="underline" href="mailto:matheasy.utn@gmail.com?subject=Necesito%20ayuda">matheasy.utn@gmail.com</a></p>
   </>)
   ;
 }
