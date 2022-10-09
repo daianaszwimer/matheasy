@@ -1,4 +1,4 @@
-import { Form, useActionData, useFetcher, useLoaderData, useLocation, useTransition } from "@remix-run/react";
+import { Form, Link, useActionData, useFetcher, useLoaderData, useLocation, useTransition } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type {  ActionFunction , LoaderFunction } from "@remix-run/node";
 import { useEffect, useRef, useState } from "react";
@@ -182,7 +182,7 @@ function Step(
             {step.info && !showMore &&
               <div className="flex md:mt-3 mt-2 gap-1.5">
                 <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
-                <p className="text-sm underline text-neutral-800 cursor-pointer">Ver más</p>
+                <p className="text-sm underline text-neutral-800">Ver más</p>
               </div>
             }
           </div>
@@ -453,6 +453,9 @@ export default function Index() {
       {/* timeline */}
       {["steps", "suggestions"].includes(step) && !isFunction && <div className="space-y-3">
         <p className="text-lg">Los pasos para resolverla son</p>
+        <Link target="_blank" to="/faq#pasos" className="text-sm underline text-neutral-300">
+          ¿Necesitás ayuda?
+        </Link>
         <ul className="container mx-auto w-full h-full relative">
           {response?.steps?.map((s: MathStep, index: number) =>
             <li key={`${s.option} ${index}`}>

@@ -35,6 +35,14 @@ export default function FAQ() {
         </p>
       </>
     },
+
+    {
+      question: "¿Cómo funciona el paso a paso?",
+      id: "pasos",
+      answer: () => <>
+        <p>Completar</p>
+      </>
+    },
     {
       question: "¿Qué enunciados entiende MathEasy?",
       answer: () => <>
@@ -149,7 +157,7 @@ export default function FAQ() {
     </h1>
     <ul className="list-disc space-y-6">
       {content.map((element) => (
-        <li key={element.question} className="space-y-2">
+        <li key={element.question} className="space-y-2" id={element.id}>
           <h3 className="text-lg font-semibold">{element.question}</h3>
           {element.answer()}
         </li>
