@@ -5,7 +5,7 @@ import {
   Meta,
   Outlet,
   Scripts,
-  ScrollRestoration,
+  ScrollRestoration
 } from "@remix-run/react";
 import styles from "./styles/app.css";
 import global from "./styles/globals.css";
@@ -13,7 +13,7 @@ import global from "./styles/globals.css";
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
   title: "MathEasy",
-  viewport: "width=device-width,initial-scale=1",
+  viewport: "width=device-width,initial-scale=1"
 });
 
 export function links() {
