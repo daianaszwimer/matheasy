@@ -170,6 +170,7 @@ export default function FAQ() {
         </li>
       ))}
     </ul>
+    <p>Tenés más dudas? Nos podés enviar un mail a <a className="underline" href="mailto:matheasy.utn@gmail.com?subject=Necesito%20ayuda">matheasy.utn@gmail.com</a></p>
   </>)
   ;
 }
