@@ -1,3 +1,4 @@
 API_URL=http://localhost:5000/api/
 PROFEBOT_API=http://localhost:5000/api/
+PROFEBOT_NEW_API=http://localhost:5000/api/
 WEB_URL=http://localhost:3000/
