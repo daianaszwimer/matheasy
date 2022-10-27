@@ -407,13 +407,13 @@ export default function Index() {
     <>
       <h1 className="text-2xl md:text-3xl text-center">
         <span className="mr-2" aria-hidden>&#128221;</span>
-        Analizar un ejercicio
+        Resolvé un ejercicio
       </h1>
       <Form method="post" action={`${location.pathname}${location.search ? location.search : "?index"}`}>
         <div className="flex-col h-full w-full mx-auto">
           <div className="rounded-xl overflow-auto space-y-2 text-lg">
             <label htmlFor="problem">
-              Ingresa el enunciado matemático
+              Ingresá el enunciado matemático
             </label>
             <textarea
               disabled={transition.state !== "idle" || fetcher.state !== "idle"}

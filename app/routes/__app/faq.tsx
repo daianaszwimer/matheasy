@@ -41,7 +41,7 @@ export default function FAQ() {
       id: "pasos",
       answer: () => <>
         <p>
-          {"En MathEasy en vez de darte la resolución del ejercicio de una, te brindamos el paso a paso para que puedas ir resolviéndolo a tu ritmo y aprendiendo. ¡Pero sin spoilers! "}
+          {"En MathEasy, en vez de darte la resolución del ejercicio de una, te brindamos el paso a paso para que puedas ir resolviéndolo a tu ritmo y aprendiendo. ¡Pero sin spoilers! "}
           <span aria-hidden>&#128561;</span>
           {" Es por esto que tenés dos opciones:"}
         </p>
@@ -97,27 +97,21 @@ export default function FAQ() {
         <p>
           {"En la sección "}
           <Link to="/history" className="underline">Historial</Link>
-          {" podrás hacer clic en los enunciados que ya consultaste "}
+          {" podrás hacer clic en los enunciados que ya consultaste para repasarlos."}
           <span aria-hidden>&#128521;</span>
-          . Esta acción te llevará al{" "}
-          <Link to="/" className="underline">Inicio</Link>
-          {" y solo tendrás que apretar el botón \"Calcular\" para volver a obtener la expresión matemática."}
         </p>
       </>
     },
     {
-      question: "¿Qué se guarda en el historial?",
+      question: "¿MathEasy almacena algún dato mío?",
       answer: () => <>
         <p>
-          En{" "}
-          <Link to="/history" className="underline">Historial</Link>
-          {" guardamos los últimos 10 enunciados que calculaste en el navegador con MathEasy."}
+          {"¡No! "}
+          <span aria-hidden>🙅&zwj;♀️</span>
+          {" MathEasy no guarda ningún dato tuyo."}
         </p>
         <p>
-          {"El historial se guarda de manera local, si por ejemplo usas MathEasy en la computadora y el celular, no podrás ver el historial del celular en la computadora o viceversa."}
-        </p>
-        <p>
-          {"En MathEasy no guardamos ningún dato tuyo "}<span aria-hidden>&#128521;</span>
+          {"Sólo almacena lo necesario para quedarse con los últimos 10 ejercicios que consultaste, ¡y lo hace de forma local! En criollo, los guarda en el navegador que utilizaste para resolverlos: si los resolviste en la compu no vas a poder ver el historial en el celu, ni tampoco al revés."}
         </p>
       </>
     },
@@ -135,7 +129,7 @@ export default function FAQ() {
     {
       question: "¿Es posible acceder desde cualquier dispositivo?",
       answer: () => <>
-        <p>{"¡Sí! Podrás usar MathEasy desde cualquier dispositivo que cuente con un navegador y acceso a internet "}
+        <p>{"¡Sí! Podrás usar MathEasy desde cualquier dispositivo que cuente con un navegador y conexión a internet. "}
           <span aria-hidden>&#128241; &#128187;</span>
         </p>
       </>
@@ -170,7 +164,7 @@ export default function FAQ() {
         </li>
       ))}
     </ul>
-    <p>Tenés más dudas? Nos podés enviar un mail a <a className="underline" href="mailto:matheasy.utn@gmail.com?subject=Necesito%20ayuda">matheasy.utn@gmail.com</a></p>
+    <p>¿Tenés más dudas? ¡Envianos un mail a <a className="underline" href="mailto:matheasy.utn@gmail.com?subject=Necesito%20ayuda">matheasy.utn@gmail.com</a>!</p>
   </>)
   ;
 }
