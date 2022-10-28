@@ -197,7 +197,7 @@ function Step(
               onClick={onClick}
               className="md:text-base text-sm rounded-lg md:p-4 p-3 bg-indigo-500 hover:bg-indigo-600"
             >
-              {order === 1 ? "Primer paso" : "Siguiente paso"}
+              {order === 1 ? "Primer paso" : isLast ? "Último paso" : "Siguiente paso"}
             </button>
             {!isLast && <button
               aria-label="Mostrar todos los pasos"
@@ -314,17 +314,27 @@ function Button({ text, disabled }: {text: string, disabled: boolean}) {
     <button
       disabled={disabled}
       type="submit"
-      className="w-full font-bold block w-full md:px-6 md:py-4 px-4 py-2 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+      className={`w-full font-bold block w-full md:px-6 md:py-4
+      px-4 py-2 rounded-md shadow bg-indigo-500
+      font-medium hover:bg-indigo-600 focus:outline-none
+      focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300
+      focus:ring-offset-gray-900
+      ${disabled ? "bg-indigo-400 hover:bg-indigo-400" : ""}`}
     >
       {text}
     </button>
   );
 }
 
+function encodeText(text?: string) {
+  return encodeURIComponent(text?.replaceAll("+", "%2B").replaceAll("=", "%3D") || "");
+}
+
 export default function Index() {
   const transition = useTransition();
   const data = useActionData<ActionData>();
   const { defaultText, url, autoResolve } = useLoaderData<LoaderData>();
+  const [text, setText] = useState(defaultText);
   const [hasLinkCopied, setHasLinkCopied] = useState(false);
   const [step, setStep] = useState<Steps | "">("");
   const calculator = useRef<HTMLDivElement>(null);
@@ -409,7 +419,7 @@ export default function Index() {
         <span className="mr-2" aria-hidden>&#128221;</span>
         Resolvé un ejercicio
       </h1>
-      <Form method="post" action={`${location.pathname}${location.search ? location.search : "?index"}`}>
+      <Form method="post" action={`${location.pathname}?index&text=${encodeText(text)}`}>
         <div className="flex-col h-full w-full mx-auto">
           <div className="rounded-xl overflow-auto space-y-2 text-lg">
             <label htmlFor="problem">
@@ -419,7 +429,8 @@ export default function Index() {
               disabled={transition.state !== "idle" || fetcher.state !== "idle"}
               id="problem"
               name="problem"
-              defaultValue={defaultText}
+              value={text}
+              onChange={(event) => {setText(event.target.value);}}
               required
               placeholder="Despejar x de la siguiente ecuación: x + 8 = 9"
               className="min-h-fit overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
@@ -427,7 +438,7 @@ export default function Index() {
           </div>
           <div className="mt-3">
             <Button
-              disabled={transition.state !== "idle" || fetcher.state !== "idle"}
+              disabled={transition.state !== "idle" || fetcher.state !== "idle" || text === ""}
               text={transition.state !== "idle" || fetcher.state !== "idle"
                 ? "Calculando..."
                 : "Calcular"}
@@ -513,7 +524,7 @@ export default function Index() {
             aria-label="Copiar link al ejercicio"
             className="justify-center rounded-lg text-sm md:p-3 p-2 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
             onClick={async () => {
-              const link = `${url}?text=${encodeURIComponent(response?.text?.replace("+", "%2B") || "")}`;
+              const link = `${url}?text=${encodeText(response?.text)}`;
               if ("clipboard" in navigator) {
                 await navigator.clipboard.writeText(link);
                 setHasLinkCopied(true);

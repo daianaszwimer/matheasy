@@ -20,7 +20,7 @@ export default function History() {
         <ul className="space-y-6 list-['\27A1\fe0f']">
           {history.reverse().map(element => (
             <li key={element} className="pl-2">
-              <Link className="underline" to={`/?index&text=${encodeURI(element.replace("+", "%2B"))}&h`}>{element}</Link>
+              <Link className="underline" to={`/?index&text=${encodeURI(element.replaceAll("+", "%2B").replaceAll("=", "%3D"))}&h`}>{element}</Link>
             </li>
           ))}
         </ul>
