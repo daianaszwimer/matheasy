@@ -58,6 +58,25 @@ export const loader: LoaderFunction = async ({
   });
 };
 
+function parseExpression(expression: string) {
+  let separator = " = ";
+  if (expression.includes("<=")) {
+    separator = " <= ";
+  } else if (expression.includes(">=")) {
+    separator = " >= ";
+  } else if (expression.includes("<")) {
+    separator = " < ";
+  } else if (expression.includes(">")) {
+    separator = " > ";
+  }
+  const [term, context] = expression.split(separator);
+  return {
+    term,
+    context,
+    root: separator
+  };
+}
+
 export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
   let result = {
@@ -86,6 +105,8 @@ export const action: ActionFunction = async({ request }) => {
       });
     }
 
+    let isFunction = result.result.tag === "Function";
+
     let [steps, suggestions] = await Promise.all([
       fetch(`${process.env.PROFEBOT_API}/exercise-resolution`, {
         method: "POST",
@@ -97,15 +118,11 @@ export const action: ActionFunction = async({ request }) => {
           "Content-Type": "application/json"
         }
       }),
-      fetch(
+      isFunction ? Promise.resolve() : fetch(
         `${process.env.PROFEBOT_NEW_API}/suggestions`,
         {
           method: "POST",
-          body: JSON.stringify({
-            "root": "=",
-            "term": "x+1",
-            "context": "2"
-          }),
+          body: JSON.stringify(parseExpression(result.result.expression || "")),
           headers: {
             "Content-Type": "application/json"
           }
@@ -114,7 +131,7 @@ export const action: ActionFunction = async({ request }) => {
     if (steps.status !== 200) {
       throw new Error("Error en la llamada de /steps");
     }
-    let suggestions_ = await suggestions.json();
+    let suggestions_ = isFunction ? [] : await suggestions?.json();
     let steps_ = await steps.json();
 
     return json<ActionData>({
