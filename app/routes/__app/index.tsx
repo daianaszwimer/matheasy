@@ -58,6 +58,25 @@ export const loader: LoaderFunction = async ({
   });
 };
 
+function parseExpression(expression: string) {
+  let separator = " = ";
+  if (expression.includes("<=")) {
+    separator = " <= ";
+  } else if (expression.includes(">=")) {
+    separator = " >= ";
+  } else if (expression.includes("<")) {
+    separator = " < ";
+  } else if (expression.includes(">")) {
+    separator = " > ";
+  }
+  const [term, context] = expression.split(separator);
+  return {
+    term,
+    context,
+    root: separator
+  };
+}
+
 export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
   let result = {
@@ -79,13 +98,14 @@ export const action: ActionFunction = async({ request }) => {
         }
       });
     result = await mathExpression.json();
-    console.log(result);
     // @ts-ignore
     if (result.error || result.result === "") {
       return json<ActionData>({
         error: "¡Ups! No puedo entender ese enunciado. Probá con otro"
       });
     }
+
+    let isFunction = result.result.tag === "Function";
 
     let [steps, suggestions] = await Promise.all([
       fetch(`${process.env.PROFEBOT_API}/exercise-resolution`, {
@@ -98,20 +118,22 @@ export const action: ActionFunction = async({ request }) => {
           "Content-Type": "application/json"
         }
       }),
-      fetch(`${process.env.PROFEBOT_API}/suggestions`, {
-        method: "POST",
-        body: JSON.stringify({ exercise: result.result.expression }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
+      isFunction ? Promise.resolve() : fetch(
+        `${process.env.PROFEBOT_NEW_API}/suggestions`,
+        {
+          method: "POST",
+          body: JSON.stringify(parseExpression(result.result.expression || "")),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
     ]);
     if (steps.status !== 200) {
       throw new Error("Error en la llamada de /steps");
     }
-    let suggestions_ = await suggestions.json();
+    let suggestions_ = isFunction ? [] : await suggestions?.json();
     let steps_ = await steps.json();
-    console.log(steps_);
+
     return json<ActionData>({
       result: result.result.expression || "",
       steps: steps_ as MathStep[],
@@ -274,7 +296,7 @@ function FunctionStep({ step }: FunctionSteProps) {
   return (
     <div
       className="font-['computer'] border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
-      <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
+      <div aria-hidden className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
         <span className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
           &#10140;
         </span>
@@ -310,7 +332,21 @@ function FunctionStep({ step }: FunctionSteProps) {
   );
 }
 
-function Button({ text, disabled }: {text: string, disabled: boolean}) {
+function Button(
+  { text, disabled, type, onClick = () => {} }:
+    {text: string, disabled: boolean, type?: string, onClick?: () => void}) {
+  if (type === "button") {
+    return (
+      <button
+        disabled={disabled}
+        type="button"
+        className="w-full font-bold block w-full md:px-6 md:py-4 px-4 py-2 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+        onClick={onClick}
+      >
+        {text}
+      </button>
+    );
+  }
   return (
     <button
       disabled={disabled}
@@ -360,6 +396,7 @@ export default function Index() {
   const calculator = useRef<HTMLDivElement>(null);
   const [stepByStep, setStepByStep] = useState<number>(0);
   const [showOperators, setShowOperators] = useState<boolean>(true);
+  const textArea = useRef<HTMLTextAreaElement>(null);
   const location = useLocation();
   const fetcher = useFetcher();
   let response = data || fetcher.data;
@@ -436,6 +473,7 @@ export default function Index() {
 
   function addOperator(operator: string) {
     setText(prev => prev + operator);
+    textArea?.current?.focus();
   }
 
   function toggleShowOperators() {
@@ -455,6 +493,7 @@ export default function Index() {
               Ingresá el enunciado matemático
             </label>
             <textarea
+              ref={textArea}
               disabled={transition.state !== "idle" || fetcher.state !== "idle"}
               id="problem"
               name="problem"
@@ -537,17 +576,11 @@ export default function Index() {
                 onClick={nextStep}
                 isNext={stepByStep === (index - 1)}
                 isLast={index === response?.steps?.length - 1}
-                showAll={() => setStepByStep(response?.steps?.length || 0)}
+                showAll={() => setStepByStep(response?.steps?.length - 1|| 0)}
               />
             </li>
           )}
         </ul>
-        {/*{(offerSuggestions || step === "suggestions") &&*/}
-        {/*  <Button*/}
-        {/*    text="Ver ejercicios parecidos"*/}
-        {/*    onClick={() => setStep("suggestions")}*/}
-        {/*  />*/}
-        {/*}*/}
       </div>
       }
       {/* Caso funciones */}
@@ -562,13 +595,54 @@ export default function Index() {
             );
           })}
         </ul>
-        {/*<Button*/}
-        {/*  text="Ver ejercicios parecidos"*/}
-        {/*  onClick={() => setStep("suggestions")}*/}
-        {/*/>*/}
       </>
       }
-      {/*{step === "suggestions" && <div>Sugerencias</div>}*/}
+
+      {((isFunction || offerSuggestions) || step === "suggestions") &&
+        <div style={{ marginTop: "16px" }}>
+          <Button
+            text="Ver ejercicios parecidos"
+            disabled={false}
+            type="button"
+            onClick={() => setStep("suggestions")}
+          />
+        </div>
+      }
+      {response?.suggestions && step === "suggestions" &&
+      <div className="space-y-3 text-lg">
+        <p>
+          Más ejercicios
+        </p>
+        <ul className="container mx-auto w-full h-full relative">
+          {response?.suggestions.map((suggestion: string, index: number) =>
+            <li key={suggestion}>
+              <div
+                className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
+                <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
+                  <p className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+                    &#10140;
+                  </p>
+                </div>
+                <div className="w-full flex text-base md:text-lg">
+                  <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+                    <div className="leading-snug tracking-wide text-neutral-900">
+                      <p aria-hidden>
+                        <Latex>
+                          {`$${suggestion}$`}
+                        </Latex>
+                      </p>
+                      <p className="sr-only">
+                        {suggestion}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </li>
+          )}
+        </ul>
+      </div>
+      }
       {!!response?.result && !response?.error &&
         <div className="flex flex-col md:flex-row gap-3 md:items-center items-start">
           <button
@@ -593,6 +667,7 @@ export default function Index() {
           </div>
         </div>
       }
+      {/*<button type="button" onClick={() => window.print()}>Descargar como PDF</button>*/}
     </>
   );
 }
