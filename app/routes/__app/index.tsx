@@ -485,7 +485,6 @@ export default function Index() {
   function addOperator(_operator: string) {
     let position = textArea.current?.selectionStart || 0;
     setText(prev => [prev.slice(0, position), _operator, prev.slice(position)].join(""));
-    console.log(position, _operator.length);
     operator.current = _operator.length + position;
   }
 
