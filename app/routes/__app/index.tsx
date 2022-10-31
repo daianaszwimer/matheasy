@@ -396,6 +396,7 @@ export default function Index() {
   const calculator = useRef<HTMLDivElement>(null);
   const [stepByStep, setStepByStep] = useState<number>(0);
   const [showOperators, setShowOperators] = useState<boolean>(true);
+  const textArea = useRef<HTMLTextAreaElement>(null);
   const location = useLocation();
   const fetcher = useFetcher();
   let response = data || fetcher.data;
@@ -472,6 +473,7 @@ export default function Index() {
 
   function addOperator(operator: string) {
     setText(prev => prev + operator);
+    textArea?.current?.focus();
   }
 
   function toggleShowOperators() {
@@ -491,6 +493,7 @@ export default function Index() {
               Ingresá el enunciado matemático
             </label>
             <textarea
+              ref={textArea}
               disabled={transition.state !== "idle" || fetcher.state !== "idle"}
               id="problem"
               name="problem"
