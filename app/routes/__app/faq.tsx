@@ -52,6 +52,7 @@ export default function FAQ() {
     },
     {
       question: "¿Qué enunciados entiende MathEasy?",
+      id: "tipo-enunciados",
       answer: () => <>
         <p>
           {"MathEasy es bastante inteligente por lo que entiende casi cualquier enunciado matemático "}

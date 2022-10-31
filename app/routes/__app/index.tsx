@@ -6,6 +6,7 @@ import styles from "katex/dist/katex.min.css";
 import Latex from "react-latex-next";
 import linkIcon from "~/assets/link.svg";
 import infoIcon from "~/assets/info.svg";
+import keyboardIcon from "~/assets/keyboard.svg";
 
 type MathStep = {
   option: string,
@@ -330,6 +331,25 @@ function encodeText(text?: string) {
   return encodeURIComponent(text?.replaceAll("+", "%2B").replaceAll("=", "%3D") || "");
 }
 
+function OperationButton({
+  text,
+  operator,
+  onClick
+}: {
+  text: string,
+  operator: string,
+  onClick:(operator: string) => void
+}) {
+  function onSelect() {
+    onClick(operator);
+  }
+  return (
+    <button onClick={onSelect} type="button" className="bg-white text-black p-1 md:p-3 rounded-md flex items-center justify-center">
+      <Latex>{`$${text}$`}</Latex>
+    </button>
+  );
+}
+
 export default function Index() {
   const transition = useTransition();
   const data = useActionData<ActionData>();
@@ -339,6 +359,7 @@ export default function Index() {
   const [step, setStep] = useState<Steps | "">("");
   const calculator = useRef<HTMLDivElement>(null);
   const [stepByStep, setStepByStep] = useState<number>(0);
+  const [showOperators, setShowOperators] = useState<boolean>(true);
   const location = useLocation();
   const fetcher = useFetcher();
   let response = data || fetcher.data;
@@ -413,6 +434,14 @@ export default function Index() {
     localStorage.setItem("ejercicios", JSON.stringify(history));
   }, [response?.text]);
 
+  function addOperator(operator: string) {
+    setText(prev => prev + operator);
+  }
+
+  function toggleShowOperators() {
+    setShowOperators(prev => !prev);
+  }
+
   return (
     <>
       <h1 className="text-2xl md:text-3xl text-center">
@@ -421,7 +450,7 @@ export default function Index() {
       </h1>
       <Form method="post" action={`${location.pathname}?index&text=${encodeText(text)}`}>
         <div className="flex-col h-full w-full mx-auto">
-          <div className="rounded-xl overflow-auto space-y-2 text-lg">
+          <div className="space-y-2 text-lg">
             <label htmlFor="problem">
               Ingresá el enunciado matemático
             </label>
@@ -435,6 +464,23 @@ export default function Index() {
               placeholder="Despejar x de la siguiente ecuación: x + 8 = 9"
               className="min-h-fit overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
             />
+            <button type="button" className="text-sm underline text-neutral-300 flex items-center gap-2" onClick={toggleShowOperators}>{showOperators ? "Ocultar" : "Mostrar"} teclado <img alt="" className="w-6 h-6" src={keyboardIcon}/></button>
+            {showOperators && <div className="grid gap-2 md:grid-rows-1 grid-rows-2 grid-flow-col md:auto-cols-auto">
+              <OperationButton text="a^b" operator=" ^ " onClick={addOperator}/>
+              <OperationButton text="a^2" operator=" ^2 " onClick={addOperator}/>
+              <OperationButton text="(" operator=" ( " onClick={addOperator}/>
+              <OperationButton text=")" operator=" ) " onClick={addOperator}/>
+              <OperationButton text="\times" operator=" * " onClick={addOperator}/>
+              <OperationButton text="\div" operator=" / " onClick={addOperator}/>
+              <OperationButton text="+" operator=" + " onClick={addOperator}/>
+              <OperationButton text="-" operator=" - " onClick={addOperator}/>
+              <OperationButton text=">" operator=" > " onClick={addOperator}/>
+              <OperationButton text="<" operator=" < " onClick={addOperator}/>
+              <OperationButton text="\geq" operator=" >= " onClick={addOperator}/>
+              <OperationButton text="\leq" operator=" <= " onClick={addOperator}/>
+              <OperationButton text="x" operator="x" onClick={addOperator}/>
+              <OperationButton text="=" operator=" = " onClick={addOperator}/>
+            </div>}
           </div>
           <div className="mt-3">
             <Button
@@ -466,8 +512,13 @@ export default function Index() {
         </div>
       )}
       {!!response?.error && (
-        <div className="font-medium">
-          <p className="text-xl">{response?.result && response?.type ? `¡Ups! No podemos resolver el paso a paso, pero sabemos la expresión y que se trata de una ${tipos[response.type as Tag]}` : response.error}</p>
+        <div className="font-medium text-lg">
+          <p className="">{response?.result && response?.type ? <>
+            ¡Ups! Sabemos que es una {tipos[response.type as Tag]}{" "}
+            pero no podemos resolverla{" "}
+            <span aria-hidden>&#128546;</span>
+          </> : response.error}</p>
+          <p>¿Necesitás ayuda? Podés resolver tus dudas leyendo <Link target="_blank" to="/faq#tipo-enunciados" className="underline">ejemplos de enunciados</Link></p>
         </div>
       )}
       {/* timeline */}
