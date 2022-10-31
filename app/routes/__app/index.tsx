@@ -390,7 +390,8 @@ export default function Index() {
   const transition = useTransition();
   const data = useActionData<ActionData>();
   const { defaultText, url, autoResolve } = useLoaderData<LoaderData>();
-  const [text, setText] = useState(defaultText);
+  const [text, setText] = useState<string>(defaultText || "");
+  const operator = useRef(0);
   const [hasLinkCopied, setHasLinkCopied] = useState(false);
   const [step, setStep] = useState<Steps | "">("");
   const calculator = useRef<HTMLDivElement>(null);
@@ -471,9 +472,20 @@ export default function Index() {
     localStorage.setItem("ejercicios", JSON.stringify(history));
   }, [response?.text]);
 
-  function addOperator(operator: string) {
-    setText(prev => prev + operator);
-    textArea?.current?.focus();
+  useEffect(() => {
+    if (operator.current) {
+      textArea.current?.setSelectionRange(
+        operator.current,
+        operator.current);
+      textArea?.current?.focus();
+      operator.current = 0;
+    }
+  }, [text]);
+
+  function addOperator(_operator: string) {
+    let position = textArea.current?.selectionStart || 0;
+    setText(prev => [prev.slice(0, position), _operator, prev.slice(position)].join(""));
+    operator.current = _operator.length + position;
   }
 
   function toggleShowOperators() {
