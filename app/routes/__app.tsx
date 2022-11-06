@@ -15,7 +15,7 @@ export default function App() {
     <div className="bg-gray-900 font-['Comfortaa'] text-white main-background bg-repeat overflow-hidden">
       <nav className="bg-slate-800 border-b-2 border-gray-700">
         <ul className="flex gap-2 md:gap-6 px-3 items-center">
-          <li className="flex"><Link className="p-4 underline" to="/">Inicio</Link></li>
+          <li className="flex"><Link className="p-4 underline" to="/" reloadDocument>Inicio</Link></li>
           <li className="flex"><Link className="p-4 underline" to="/history">Historial</Link></li>
           <li className="flex"><Link className="p-4 underline" to="/faq">Ayuda</Link></li>
         </ul>
