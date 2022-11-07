@@ -6,12 +6,7 @@ import styles from "katex/dist/katex.min.css";
 import Latex from "react-latex-next";
 import linkIcon from "~/assets/link.svg";
 import infoIcon from "~/assets/info.svg";
-import deleteIcon from "~/assets/delete.svg";
 import keyboardIcon from "~/assets/keyboard.svg";
-import type { Worker } from "tesseract.js";
-import { createWorker } from "tesseract.js";
-import type { ImageListType } from "react-images-uploading";
-import ImageUploading from "react-images-uploading";
 
 type MathStep = {
   option: string,
@@ -391,98 +386,6 @@ function OperationButton({
   );
 }
 
-function ImageUploader({ updateText }: {updateText(text: string): void}) {
-  const [images, setImages] = useState<ImageListType>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const ocrWorker = useRef<Worker>(null);
-
-  async function initializeOCR() {
-    const worker = createWorker({
-    });
-    await worker.load();
-    await worker.loadLanguage("spa");
-    await worker.initialize("spa");
-    // @ts-ignore
-    ocrWorker.current = worker;
-  }
-  useEffect(() => {
-    initializeOCR();
-  }, []);
-
-  useEffect(() => {
-    console.log(ocrWorker.current, "OCR Worker");
-    if (!ocrWorker?.current || images.length === 0) return;
-    async function ocr() {
-      updateText("");
-      setIsLoading(true);
-      // @ts-ignore
-      const result =
-        await ocrWorker?.current?.recognize(images[0]?.data_url);
-      if (!result?.data?.text) return;
-      console.log(result?.data?.text);
-      updateText(result?.data?.text.replaceAll("—", "-"));
-      setIsLoading(false);
-    }
-
-    ocr();
-  }, [images, ocrWorker, updateText]);
-
-  const onChange = (imageList: ImageListType) => {
-    // data for submit
-    setImages(imageList);
-  };
-
-  const className = `justify-center rounded-lg text-sm md:p-3 p-2 bg-teal-600
-  hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full ${isLoading ? "bg-teal-500 hover:bg-teal-500" : ""}`;
-
-  return (
-    <div className="App">
-      <ImageUploading
-        value={images}
-        onChange={onChange}
-        dataURLKey="data_url"
-        acceptType={["jpg", "png"]}
-      >
-        {({
-          imageList,
-          onImageUpload,
-          onImageRemoveAll,
-          isDragging,
-          dragProps
-        }) => (
-          <div className="text-base flex gap-2">
-            <button
-              className={`${className} ${isDragging ? "bg-teal-700" : ""}`}
-              onClick={onImageUpload}
-              disabled={isLoading}
-              type="button"
-              {...dragProps}
-            >
-              {isLoading ? "Procesando imagen..." : "Selecciona o arrastra una imagen"}
-            </button>
-            {imageList.map((image, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <p className="text-sm">{image.file?.name}</p>
-                <button
-                  disabled={isLoading}
-                  onClick={() => {
-                    onImageRemoveAll();
-                    updateText("");
-                  }}
-                  className="flex items-center"
-                  type="button"
-                >
-                  <img src={deleteIcon} alt="Borrar texto e imagen" width={24}/>
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </ImageUploading>
-    </div>
-  );
-}
-
 export default function Index() {
   const transition = useTransition();
   const data = useActionData<ActionData>();
@@ -630,7 +533,6 @@ export default function Index() {
               <OperationButton text="=" operator=" = " onClick={addOperator}/>
             </div>}
           </div>
-          <ImageUploader updateText={setText}/>
           <Button
             disabled={transition.state !== "idle" || fetcher.state !== "idle" || text === ""}
             text={transition.state !== "idle" || fetcher.state !== "idle"
