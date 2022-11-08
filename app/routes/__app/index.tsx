@@ -22,9 +22,9 @@ type Tag = "Equation" | "Function";
 interface ActionData {
   result?: string | null;
   error?: string;
-  steps?: MathStep[],
-  suggestions?: string[]
-  text?: string;
+  steps?: MathStep[] | null;
+  suggestions?: string[] | null;
+  text: string;
   type?: Tag | null;
 }
 
@@ -48,106 +48,110 @@ export const loader: LoaderFunction = async ({
   request
 }) => {
   const url = new URL(request.url);
-  const defaultText = decodeURIComponent(url.searchParams.get("text") || "");
-  // si venis de historial se resuelve automatico
   const autoResolve = url.searchParams.has("h");
-  return json<LoaderData>({
-    defaultText,
-    url: process.env.WEB_URL || "",
-    autoResolve
-  });
-};
-
-function parseExpression(expression: string) {
-  let separator = " = ";
-  if (expression.includes("<=")) {
-    separator = " <= ";
-  } else if (expression.includes(">=")) {
-    separator = " >= ";
-  } else if (expression.includes("<")) {
-    separator = " < ";
-  } else if (expression.includes(">")) {
-    separator = " > ";
+  try {
+    const defaultText = decodeURIComponent(url.searchParams.get("text") || "");
+    // si venis de historial se resuelve automatico
+    return json<LoaderData>({
+      defaultText,
+      url: process.env.WEB_URL || "",
+      autoResolve
+    });
+  } catch (error) {
+    return json<LoaderData>({
+      defaultText: "",
+      url: process.env.WEB_URL || "",
+      autoResolve
+    });
   }
-  const [term, context] = expression.split(separator);
-  return {
-    term,
-    context,
-    root: separator
-  };
-}
+};
 
 export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
-  let result = {
-    error: null,
-    result: {
-      expression: null,
-      tag: null
-    }
-  };
+  const text = body.get("problem") as string;
   try {
-    const text = body.get("problem") as string;
-    const mathExpression = await fetch(
-      `${process.env.API_URL}/math-translation`,
-      {
-        method: "POST",
-        body: JSON.stringify({ text }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-    result = await mathExpression.json();
-    // @ts-ignore
-    if (result.error || result.result === "") {
-      return json<ActionData>({
-        error: "¡Ups! No puedo entender ese enunciado. Probá con otro"
-      });
+    const mathExpression = await getExpression(text);
+    if (mathExpression === null) {
+      throw new Error("No hay expresion matematica");
     }
-
-    let isFunction = result.result.tag === "Function";
-
     let [steps, suggestions] = await Promise.all([
-      fetch(`${process.env.PROFEBOT_API}/exercise-resolution`, {
-        method: "POST",
-        body: JSON.stringify({
-          exercise: result.result.expression,
-          exerciseTag: result.result.tag
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      }),
-      isFunction ? Promise.resolve() : fetch(
-        `${process.env.PROFEBOT_NEW_API}/suggestions`,
-        {
-          method: "POST",
-          body: JSON.stringify(parseExpression(result.result.expression || "")),
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
+      getResolution(mathExpression.expression, mathExpression.tag),
+      getSuggestions(mathExpression.expression)
     ]);
-    if (steps.status !== 200) {
-      throw new Error("Error en la llamada de /steps");
-    }
-    let suggestions_ = isFunction ? [] : await suggestions?.json();
-    let steps_ = await steps.json();
 
     return json<ActionData>({
-      result: result.result.expression || "",
-      steps: steps_ as MathStep[],
-      suggestions: suggestions_ as string[],
+      result: mathExpression?.expression || null,
+      steps: steps ? steps as MathStep[] : null,
+      suggestions: suggestions ? suggestions as string[] : null,
       text,
-      type: result.result.tag as unknown as Tag
+      type: mathExpression ? mathExpression.tag as Tag : null
     });
   } catch(error) {
     console.log(error);
     return json<ActionData>({
       error: "¡Ups! Algo falló, inténtalo nuevamente",
-      result: result.result.expression,
-      type: result.result.tag
+      text
     });
+  }
+  async function getExpression(text: string) {
+    try {
+      const expression = await fetch(
+        `${process.env.API_URL}/math-translation`,
+        {
+          method: "POST",
+          body: JSON.stringify({ text }),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+      const response = await expression.json();
+      // retorna { expression, tag }
+      return response.result;
+    } catch (error) {
+      console.log("Fallo /math-translation", error);
+      return null;
+    }
+  }
+  async function getResolution(expression: string, tag: string) {
+    try {
+      const response = await
+      fetch(`${process.env.PROFEBOT_API}/exercise-resolution`, {
+        method: "POST",
+        body: JSON.stringify({
+          exercise: expression,
+          exerciseTag: tag
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      const result = await response.json();
+      if (result.status && result.status !== 200) {
+        throw new Error("Status no es 200");
+      }
+      return result;
+    } catch (error) {
+      console.log("Fallo /exercise-resolution", error);
+      return null;
+    }
+  }
+  async function getSuggestions(expression: string) {
+    try {
+      const response = await fetch(
+        `${process.env.API_URL}/suggestions`,
+        {
+          method: "POST",
+          body: JSON.stringify({ equation: expression }),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.log("Fallo /suggestions", error);
+      return null;
+    }
   }
 };
 
@@ -386,6 +390,32 @@ function OperationButton({
   );
 }
 
+function StepsError({ type }: {type: Tag}) {
+  if (type === "Function") {
+    return (
+      <>
+        ¡Ups! Sabemos que es una función pero no podemos analizarla{" "}
+        <span aria-hidden>&#128546;</span>
+      </>
+    );
+  }
+  return <>
+    ¡Ups! Sabemos que es una ecuación pero no podemos resolverla{" "}
+    <span aria-hidden>&#128546;</span>
+  </>;
+}
+
+export function ErrorBoundary() {
+  //const caught = useCatch();
+  return (
+    <div className="font-medium text-xl flex flex-col items-center space-y-1">
+      <p>¡Ups! Algo falló</p>
+      <p>No te preocupes, no es tu culpa!</p>
+      <Link to="/" className="underline" reloadDocument>Hacé click acá para volver al Inicio</Link>
+    </div>
+  );
+}
+
 export default function Index() {
   const transition = useTransition();
   const data = useActionData<ActionData>();
@@ -560,56 +590,69 @@ export default function Index() {
           </div>
         </div>
       )}
-      {!!response?.error && (
-        <div className="font-medium text-lg">
-          <p className="">{response?.result && response?.type ? <>
-            ¡Ups! Sabemos que es una {tipos[response.type as Tag]}{" "}
-            pero no podemos resolverla{" "}
-            <span aria-hidden>&#128546;</span>
-          </> : response.error}</p>
-          <p>¿Necesitás ayuda? Podés resolver tus dudas leyendo <Link target="_blank" to="/faq#tipo-enunciados" className="underline">ejemplos de enunciados</Link></p>
-        </div>
-      )}
       {/* timeline */}
-      {["steps", "suggestions"].includes(step) && !isFunction && response?.steps?.length > 0 && <div className="space-y-3">
-        <p className="text-lg">Los pasos para resolverla son</p>
-        <Link target="_blank" to="/faq#pasos" className="text-sm underline text-neutral-300">
-          ¿Necesitás ayuda?
-        </Link>
-        <ul className="container mx-auto w-full h-full relative">
-          {response?.steps?.map((s: MathStep, index: number) =>
-            <li key={`${s.option} ${index}`}>
-              <Step
-                hide={stepByStep < index}
-                order={index + 1}
-                step={s}
-                onClick={nextStep}
-                isNext={stepByStep === (index - 1)}
-                isLast={index === response?.steps?.length - 1}
-                showAll={() => setStepByStep(response?.steps?.length - 1|| 0)}
-              />
-            </li>
-          )}
-        </ul>
-      </div>
+      {["steps", "suggestions"].includes(step) && !isFunction && response?.steps?.length > 0 &&
+        (
+          <div className="space-y-3">
+            <p className="text-lg">Los pasos para resolverla son</p>
+            <Link target="_blank" to="/faq#pasos" className="text-sm underline text-neutral-300">
+              ¿Necesitás ayuda?
+            </Link>
+            <ul className="container mx-auto w-full h-full relative">
+              {response?.steps?.map((s: MathStep, index: number) =>
+                <li key={`${s.option} ${index}`}>
+                  <Step
+                    hide={stepByStep < index}
+                    order={index + 1}
+                    step={s}
+                    onClick={nextStep}
+                    isNext={stepByStep === (index - 1)}
+                    isLast={index === response?.steps?.length - 1}
+                    showAll={() => setStepByStep(
+                      response?.steps?.length - 1 || 0
+                    )}
+                  />
+                </li>
+              )}
+            </ul>
+          </div>
+        )
       }
       {/* Caso funciones */}
-      {["function", "suggestions"].includes(step) && isFunction && <>
-        <div ref={calculator} id="calculator" className="md:h-96 h-56" style={{ "width": "100%" }}></div>
-        <ul className="container mx-auto w-full h-full relative">
-          {response?.steps?.map((s: MathStep, index: number) => {
-            return (
-              <li key={`${s.option} ${index}`}>
-                <FunctionStep order={index} step={s}/>
-              </li>
-            );
-          })}
-        </ul>
-      </>
+      {["function", "suggestions"].includes(step) && isFunction &&
+        (
+          <>
+            <div ref={calculator} id="calculator" className="md:h-96 h-56" style={{ "width": "100%" }}></div>
+            <ul className="container mx-auto w-full h-full relative">
+              {response?.steps?.map((s: MathStep, index: number) => {
+                return (
+                  <li key={`${s.option} ${index}`}>
+                    <FunctionStep order={index} step={s}/>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )
       }
-
-      {((isFunction || offerSuggestions) || step === "suggestions") &&
-        <div style={{ marginTop: "16px" }}>
+      {response?.steps === null &&
+        (
+          <div className="text-lg">
+            <p>
+              {response?.result && response?.type ?
+                <StepsError type={response.type}/> : response.error
+              }
+            </p>
+            <p>Podés resolver tus dudas leyendo{" "}
+              <Link target="_blank" to="/faq#tipo-enunciados" className="underline">
+                ejemplos de enunciados
+              </Link>
+            </p>
+          </div>
+        )
+      }
+      {response?.suggestions && ((isFunction || offerSuggestions) || step === "suggestions") &&
+        <div className="mt-4">
           <Button
             text="Ver ejercicios parecidos"
             disabled={false}
@@ -619,39 +662,54 @@ export default function Index() {
         </div>
       }
       {response?.suggestions && step === "suggestions" &&
-      <div className="space-y-3 text-lg">
-        <p>
-          Más ejercicios
-        </p>
-        <ul className="container mx-auto w-full h-full relative">
-          {response?.suggestions.map((suggestion: string, index: number) =>
-            <li key={suggestion}>
-              <div
-                className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
-                <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
-                  <p className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
-                    &#10140;
-                  </p>
-                </div>
-                <div className="w-full flex text-base md:text-lg">
-                  <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
-                    <div className="leading-snug tracking-wide text-neutral-900">
-                      <p aria-hidden>
-                        <Latex>
-                          {`$${suggestion}$`}
-                        </Latex>
-                      </p>
-                      <p className="sr-only">
-                        {suggestion}
+        (
+          <div className="space-y-3 text-lg">
+            <p>
+              Más ejercicios
+            </p>
+            <ul className="container mx-auto w-full h-full relative">
+              {response?.suggestions?.map((suggestion: string, index: number) =>
+                <li key={suggestion}>
+                  <div
+                    className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
+                    <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
+                      <p className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+                        &#10140;
                       </p>
                     </div>
+                    <div className="w-full flex text-base md:text-lg">
+                      <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+                        <div className="leading-snug tracking-wide text-neutral-900">
+                          <p aria-hidden>
+                            <Latex>
+                              {`$${suggestion}$`}
+                            </Latex>
+                          </p>
+                          <p className="sr-only">
+                            {suggestion}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </li>
-          )}
-        </ul>
-      </div>
+                </li>
+              )}
+            </ul>
+          </div>
+        )
+      }
+      {response?.suggestions === null &&
+        (
+          <div className="text-lg space-y-1">
+            <p>
+              ¡Ups! No pudimos generar ejercicios similares para este enunciado
+              <span aria-hidden>&#128546;</span>
+            </p>
+            <Link target="_blank" to="/faq" className="underline">
+              ¿Necesitás ayuda?
+            </Link>
+          </div>
+        )
       }
       {!!response?.result && !response?.error &&
         <div className="flex flex-col md:flex-row gap-3 md:items-center items-start">
@@ -677,7 +735,6 @@ export default function Index() {
           </div>
         </div>
       }
-      {/*<button type="button" onClick={() => window.print()}>Descargar como PDF</button>*/}
     </>
   );
 }

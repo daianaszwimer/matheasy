@@ -1,5 +1,16 @@
 import { Link } from "@remix-run/react";
 
+export function ErrorBoundary() {
+  //const caught = useCatch();
+  return (
+    <div className="font-medium text-xl flex flex-col items-center space-y-1">
+      <p>¡Ups! Algo falló</p>
+      <p>No te preocupes, no es tu culpa!</p>
+      <Link to="/" className="underline" reloadDocument>Hacé click acá para volver al Inicio</Link>
+    </div>
+  );
+}
+
 export default function FAQ() {
   let content = [
     {
