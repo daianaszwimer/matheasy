@@ -76,7 +76,7 @@ export const action: ActionFunction = async({ request }) => {
     }
     let [steps, suggestions] = await Promise.all([
       getResolution(mathExpression.expression, mathExpression.tag),
-      getSuggestions(mathExpression.expression)
+      getSuggestions(mathExpression.expression, mathExpression.tag)
     ]);
 
     return json<ActionData>({
@@ -135,13 +135,13 @@ export const action: ActionFunction = async({ request }) => {
       return null;
     }
   }
-  async function getSuggestions(expression: string) {
+  async function getSuggestions(expression: string, tag: string) {
     try {
       const response = await fetch(
         `${process.env.API_URL}/suggestions`,
         {
           method: "POST",
-          body: JSON.stringify({ equation: expression }),
+          body: JSON.stringify({ equation: expression, tag }),
           headers: {
             "Content-Type": "application/json"
           }
@@ -153,11 +153,6 @@ export const action: ActionFunction = async({ request }) => {
       return null;
     }
   }
-};
-
-let tipos = {
-  "Function": "función",
-  "Equation": "ecuación"
 };
 
 type Steps = "steps" | "suggestions" | "function"
@@ -374,17 +369,26 @@ function encodeText(text?: string) {
 function OperationButton({
   text,
   operator,
-  onClick
+  onClick,
+  title
 }: {
   text: string,
   operator: string,
   onClick:(operator: string) => void
+  title: string
 }) {
   function onSelect() {
     onClick(operator);
   }
   return (
-    <button onClick={onSelect} type="button" className="bg-white text-black p-1 md:p-3 rounded-md flex items-center justify-center">
+    <button
+      title={title}
+      onClick={onSelect}
+      aria-label={title}
+      type="button"
+      className="bg-white
+      text-black p-1 md:p-3 rounded-md flex items-center justify-center"
+    >
       <Latex>{`$${text}$`}</Latex>
     </button>
   );
@@ -546,22 +550,24 @@ export default function Index() {
               className="min-h-fit overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
             />
             <button type="button" className="text-sm underline text-neutral-300 flex items-center gap-2" onClick={toggleShowOperators}>{showOperators ? "Ocultar" : "Mostrar"} teclado <img alt="" className="w-6 h-6" src={keyboardIcon}/></button>
-            {showOperators && <div className="grid gap-2 md:grid-rows-1 grid-rows-2 grid-flow-col md:auto-cols-auto">
-              <OperationButton text="a^b" operator=" ^ " onClick={addOperator}/>
-              <OperationButton text="a^2" operator=" ^2 " onClick={addOperator}/>
-              <OperationButton text="(" operator=" ( " onClick={addOperator}/>
-              <OperationButton text=")" operator=" ) " onClick={addOperator}/>
-              <OperationButton text="\times" operator=" * " onClick={addOperator}/>
-              <OperationButton text="\div" operator=" / " onClick={addOperator}/>
-              <OperationButton text="+" operator=" + " onClick={addOperator}/>
-              <OperationButton text="-" operator=" - " onClick={addOperator}/>
-              <OperationButton text=">" operator=" > " onClick={addOperator}/>
-              <OperationButton text="<" operator=" < " onClick={addOperator}/>
-              <OperationButton text="\geq" operator=" >= " onClick={addOperator}/>
-              <OperationButton text="\leq" operator=" <= " onClick={addOperator}/>
-              <OperationButton text="x" operator="x" onClick={addOperator}/>
-              <OperationButton text="=" operator=" = " onClick={addOperator}/>
-            </div>}
+            {showOperators && (
+              <div className="grid gap-2 md:grid-rows-1 grid-rows-2 grid-flow-col md:auto-cols-auto">
+                <OperationButton text="x" operator="x" onClick={addOperator} title="Incógnita"/>
+                <OperationButton text="=" operator=" = " onClick={addOperator} title="Igualdad"/>
+                <OperationButton text="+" operator=" + " onClick={addOperator} title="Suma"/>
+                <OperationButton text="-" operator=" - " onClick={addOperator} title="Resta"/>
+                <OperationButton text="\times" operator=" * " onClick={addOperator} title="Multiplicación"/>
+                <OperationButton text="\div" operator=" / " onClick={addOperator} title="División"/>
+                <OperationButton text=">" operator=" > " onClick={addOperator} title="Mayor"/>
+                <OperationButton text="<" operator=" < " onClick={addOperator} title="Menor"/>
+                <OperationButton text="\geq" operator=" >= " onClick={addOperator} title="Mayor igual"/>
+                <OperationButton text="\leq" operator=" <= " onClick={addOperator} title="Menor igual"/>
+                <OperationButton text="(" operator=" ( " onClick={addOperator} title="Abrir paréntesis"/>
+                <OperationButton text=")" operator=" ) " onClick={addOperator} title="Cerrar paréntesis"/>
+                <OperationButton text="a^2" operator=" ^2 " onClick={addOperator} title="Cuadrado"/>
+                <OperationButton text="a^b" operator=" ^ " onClick={addOperator} title="Potencia"/>
+              </div>
+            )}
           </div>
           <Button
             disabled={transition.state !== "idle" || fetcher.state !== "idle" || text === ""}
