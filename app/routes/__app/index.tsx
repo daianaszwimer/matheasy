@@ -76,7 +76,7 @@ export const action: ActionFunction = async({ request }) => {
     }
     let [steps, suggestions] = await Promise.all([
       getResolution(mathExpression.expression, mathExpression.tag),
-      getSuggestions(mathExpression.expression)
+      getSuggestions(mathExpression.expression, mathExpression.tag)
     ]);
 
     return json<ActionData>({
@@ -135,13 +135,13 @@ export const action: ActionFunction = async({ request }) => {
       return null;
     }
   }
-  async function getSuggestions(expression: string) {
+  async function getSuggestions(expression: string, tag: string) {
     try {
       const response = await fetch(
         `${process.env.API_URL}/suggestions`,
         {
           method: "POST",
-          body: JSON.stringify({ equation: expression }),
+          body: JSON.stringify({ equation: expression, tag }),
           headers: {
             "Content-Type": "application/json"
           }
