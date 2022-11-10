@@ -26,6 +26,7 @@ interface ActionData {
   suggestions?: string[] | null;
   text: string;
   type?: Tag | null;
+  status?: string | null;
 }
 
 interface LoaderData {
@@ -66,13 +67,15 @@ export const loader: LoaderFunction = async ({
   }
 };
 
+const INVALID_TEXT_ERROR = "300";
+
 export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
   const text = body.get("problem") as string;
   try {
     const mathExpression = await getExpression(text);
     if (mathExpression === null) {
-      throw new Error("No hay expresion matematica");
+      throw new Error(INVALID_TEXT_ERROR);
     }
     let [steps, suggestions] = await Promise.all([
       getResolution(mathExpression.expression, mathExpression.tag),
@@ -88,9 +91,14 @@ export const action: ActionFunction = async({ request }) => {
     });
   } catch(error) {
     console.log(error);
+    let status = null;
+    if (error instanceof Error) {
+      status = error.message;
+    }
     return json<ActionData>({
       error: "¡Ups! Algo falló, inténtalo nuevamente",
-      text
+      text,
+      status
     });
   }
   async function getExpression(text: string) {
@@ -105,6 +113,9 @@ export const action: ActionFunction = async({ request }) => {
           }
         });
       const response = await expression.json();
+      if (response.error) {
+        throw new Error("No hay una expresión matemática válida");
+      }
       // retorna { expression, tag }
       return response.result;
     } catch (error) {
@@ -486,7 +497,7 @@ export default function Index() {
   }, [calculator, step, response?.result, graph]);
 
   useEffect(() => {
-    if (!response?.text) return;
+    if (response?.error || !response?.text) return;
     let history = JSON.parse(localStorage.getItem("ejercicios") || "[]");
     // si el elemento ya existe moverlo de lugar al ultimo
     let index = history.indexOf(response?.text);
@@ -504,7 +515,7 @@ export default function Index() {
       history.push(response?.text);
     }
     localStorage.setItem("ejercicios", JSON.stringify(history));
-  }, [response?.text]);
+  }, [response?.error, response?.text]);
 
   useEffect(() => {
     if (operator.current) {
@@ -525,6 +536,11 @@ export default function Index() {
   function toggleShowOperators() {
     setShowOperators(prev => !prev);
   }
+  let invalidText = response?.status === INVALID_TEXT_ERROR;
+
+  let classError = "focus:ring-2 focus:ring-offset-1 focus:ring-rose-300 ring ring-offset-1 ring-rose-700 focus:ring-offset-gray-900";
+
+  let textAreaClass = `min-h-fit overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-neutral-400 focus:outline-none ${invalidText && defaultText === text ? classError : "focus:ring-offset-1 focus:ring-2 focus:ring-indigo-300 focus:ring-offset-gray-900"}`;
 
   return (
     <>
@@ -547,8 +563,21 @@ export default function Index() {
               onChange={(event) => {setText(event.target.value);}}
               required
               placeholder="Despejar x de la siguiente ecuación: x + 8 = 9"
-              className="min-h-fit overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+              className={textAreaClass}
             />
+            {invalidText && (
+              <div className="text-base space-y-2">
+                <p>
+                  El enunciado ingresado no es válido.
+                </p>
+                <p>
+                  Si querés saber qué enunciados son válidos podés{" "}
+                  <Link target="_blank" to="/faq#tipo-enunciados" className="underline">
+                    leer ejemplos en la sección de ayuda
+                  </Link>
+                </p>
+              </div>
+            )}
             <button type="button" className="text-sm underline text-neutral-300 flex items-center gap-2" onClick={toggleShowOperators}>{showOperators ? "Ocultar" : "Mostrar"} teclado <img alt="" className="w-6 h-6" src={keyboardIcon}/></button>
             {showOperators && (
               <div className="grid gap-2 md:grid-rows-1 grid-rows-2 grid-flow-col md:auto-cols-auto">
@@ -570,7 +599,11 @@ export default function Index() {
             )}
           </div>
           <Button
-            disabled={transition.state !== "idle" || fetcher.state !== "idle" || text === ""}
+            disabled={transition.state !== "idle" ||
+              fetcher.state !== "idle"
+              || text === ""
+              // no dejar hacer submit si el texto es el mismo y es error
+              || (defaultText === text && invalidText)}
             text={transition.state !== "idle" || fetcher.state !== "idle"
               ? "Calculando..."
               : "Calcular"}
