@@ -112,10 +112,13 @@ export const action: ActionFunction = async({ request }) => {
             "Content-Type": "application/json"
           }
         });
-      const response = await expression.json();
-      if (response.error) {
+      if (expression.status === 400) {
         throw new Error("No hay una expresión matemática válida");
       }
+      if (expression.status !== 200) {
+        throw new Error("Status no es 200");
+      }
+      const response = await expression.json();
       // retorna { expression, tag }
       return response.result;
     } catch (error) {
@@ -136,10 +139,10 @@ export const action: ActionFunction = async({ request }) => {
           "Content-Type": "application/json"
         }
       });
-      const result = await response.json();
-      if (result.status && result.status !== 200) {
+      if (response.status !== 200) {
         throw new Error("Status no es 200");
       }
+      const result = await response.json();
       return result;
     } catch (error) {
       console.log("Fallo /exercise-resolution", error);
@@ -157,6 +160,9 @@ export const action: ActionFunction = async({ request }) => {
             "Content-Type": "application/json"
           }
         });
+      if (response.status !== 200) {
+        throw new Error("Status no es 200");
+      }
       const result = await response.json();
       return result;
     } catch (error) {
@@ -707,7 +713,7 @@ export default function Index() {
               Más ejercicios
             </p>
             <ul className="container mx-auto w-full h-full relative">
-              {response?.suggestions?.map((suggestion: string, index: number) =>
+              {response?.suggestions?.map((suggestion: string) =>
                 <li key={suggestion}>
                   <div
                     className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
