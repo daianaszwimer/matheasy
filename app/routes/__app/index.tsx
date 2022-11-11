@@ -356,7 +356,7 @@ function Button(
       <button
         disabled={disabled}
         type="button"
-        className="w-full font-bold block w-full md:px-6 md:py-4 px-4 py-2 rounded-md shadow bg-indigo-500 font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+        className="w-full font-semibold block w-full md:px-6 md:py-4 px-4 py-2 rounded-md shadow bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
         onClick={onClick}
       >
         {text}
@@ -367,9 +367,9 @@ function Button(
     <button
       disabled={disabled}
       type="submit"
-      className={`w-full font-bold block w-full md:px-6 md:py-4
+      className={`w-full font-semibold block w-full md:px-6 md:py-4
       px-4 py-2 rounded-md shadow bg-indigo-500
-      font-medium hover:bg-indigo-600 focus:outline-none
+      hover:bg-indigo-600 focus:outline-none
       focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300
       focus:ring-offset-gray-900
       ${disabled ? "bg-indigo-400 hover:bg-indigo-400" : ""}`}
@@ -429,10 +429,10 @@ function StepsError({ type }: {type: Tag}) {
 export function ErrorBoundary() {
   //const caught = useCatch();
   return (
-    <div className="font-medium text-xl flex flex-col items-center space-y-1">
+    <div className="font-light text-xl flex flex-col items-center space-y-1">
       <p>¡Ups! Algo falló</p>
       <p>No te preocupes, no es tu culpa!</p>
-      <Link to="/" className="underline" reloadDocument>Hacé click acá para volver al Inicio</Link>
+      <Link to="/" className="underline font-medium" reloadDocument>Volver al Inicio</Link>
     </div>
   );
 }
@@ -572,7 +572,7 @@ export default function Index() {
               className={textAreaClass}
             />
             {invalidText && (
-              <div className="text-base space-y-2">
+              <div className="text-base font-light space-y-2">
                 <p>
                   El enunciado ingresado no es válido.
                 </p>
@@ -682,7 +682,7 @@ export default function Index() {
       }
       {response?.steps === null &&
         (
-          <div className="text-lg">
+          <div className="text-lg font-light">
             <p>
               {response?.result && response?.type ?
                 <StepsError type={response.type}/> : response.error
@@ -745,7 +745,7 @@ export default function Index() {
       }
       {response?.suggestions === null &&
         (
-          <div className="text-lg space-y-1">
+          <div className="text-lg space-y-1 font-light">
             <p>
               ¡Ups! No pudimos generar ejercicios similares para este enunciado
               <span aria-hidden>&#128546;</span>
@@ -760,7 +760,7 @@ export default function Index() {
         <div className="flex flex-col md:flex-row gap-3 md:items-center items-start">
           <button
             aria-label="Copiar link al ejercicio"
-            className="justify-center rounded-lg text-sm md:p-3 p-2 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
+            className="font-medium justify-center rounded-lg text-sm md:p-3 p-2 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
             onClick={async () => {
               const link = `${url}?text=${encodeText(response?.text)}`;
               if ("clipboard" in navigator) {
@@ -776,7 +776,7 @@ export default function Index() {
             <p aria-hidden>¡Copia el link al ejercicio y compartilo!</p>
           </button>
           <div className={`bg-green-50 border-l-8 border-green-500 p-3 w-fit rounded-md transition-opacity ${hasLinkCopied ? "opacity-100" : "opacity-0 invisible"}`}>
-            <p className="text-green-900 text-sm font-bold">¡Copiado!</p>
+            <p className="text-green-900 text-sm font-medium">¡Copiado!</p>
           </div>
         </div>
       }

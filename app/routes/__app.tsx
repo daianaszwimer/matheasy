@@ -1,21 +1,12 @@
 import icon from "~/assets/icon.png";
 import { NavLink, Outlet } from "@remix-run/react";
 
-export function links() {
-  return [
-    {
-      rel: "stylesheet",
-      href: "https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;700&display=swap"
-    }
-  ];
-}
-
 function NavItem({ to, text, reload = false }:
  {to: string, text: string, reload?: boolean}) {
   return (
     <NavLink
       className={({ isActive }) =>
-        isActive ? "p-4 pb-3.5 border-b-2 border-white" : "p-4"
+        isActive ? "p-4 pb-3.5 border-b-2 border-white font-medium" : "p-4"
       }
       to={to}
       reloadDocument={reload}
@@ -27,7 +18,7 @@ function NavItem({ to, text, reload = false }:
 
 export default function App() {
   return (
-    <div className="bg-gray-900 font-['Comfortaa'] text-white main-background bg-repeat overflow-hidden">
+    <div className="bg-gray-900 font-['Mona Sans'] text-white main-background bg-repeat overflow-hidden">
       <nav className="bg-slate-800">
         <ul className="flex gap-2 md:gap-6 px-3 items-center">
           <li className="flex"><NavItem to="/" text="Inicio" reload/></li>

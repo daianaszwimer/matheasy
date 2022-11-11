@@ -4,7 +4,7 @@ import { Link } from "@remix-run/react";
 export function ErrorBoundary() {
   //const caught = useCatch();
   return (
-    <div className="font-medium text-xl flex flex-col items-center space-y-1">
+    <div className="font-light text-xl flex flex-col items-center space-y-1">
       <p>¡Ups! Algo falló</p>
       <p>No te preocupes, no es tu culpa!</p>
       <Link to="/" className="underline" reloadDocument>Hacé click acá para volver al Inicio</Link>
@@ -28,7 +28,7 @@ export default function History() {
         (
           <>
             <h2 className="text-base md:text-xl text-white text-center">
-              ¡Hacé clic en el enunciado que quieras repasar!
+              ¡Hacé click en el enunciado que quieras repasar!
             </h2>
             <ul className="space-y-6 list-['\27A1\fe0f']">
               {history.reverse().map(element => (
@@ -40,8 +40,8 @@ export default function History() {
           </>
         ) : (
           <h2 className="text-xl text-white text-center">
-            ¡Nada por aquí! A medida que resuelvas ejercicios{" "}
-            tu historial crecerá
+            ¡Nada por aquí! Cuando resuelvas tu primer ejercicio{" "}
+            va a aparecer esta sección
           </h2>
         )
       }
