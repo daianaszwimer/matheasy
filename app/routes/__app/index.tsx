@@ -568,18 +568,30 @@ export default function Index() {
             <label htmlFor="problem">
               Ingresá el enunciado matemático
             </label>
-            <textarea
-              ref={textArea}
-              disabled={transition.state !== "idle" || fetcher.state !== "idle"}
-              id="problem"
-              name="problem"
-              value={text}
-              onChange={(event) => {setText(event.target.value);}}
-              required
-              placeholder="Despejar x de la siguiente ecuación: x + 8 = 9"
-              className={textAreaClass}
-              spellCheck
-            />
+            <div className="relative">
+              <textarea
+                ref={textArea}
+                disabled={transition.state !== "idle" || fetcher.state !== "idle"}
+                id="problem"
+                name="problem"
+                value={text}
+                onChange={(event) => {setText(event.target.value);}}
+                required
+                placeholder="Despejar x de la siguiente ecuación: x + 8 = 9"
+                className={textAreaClass}
+                spellCheck
+              />
+              {text !== "" &&
+                <button
+                  type="button"
+                  onClick={() => setText("")}
+                  title="Borrar texto"
+                  className="absolute top-2 right-2"
+                >
+                  <img alt="" className="w-5 h-5" src={resetIcon}/>
+                </button>
+              }
+            </div>
             {invalidText && (
               <div className="text-base font-light space-y-2">
                 <p>
@@ -600,13 +612,6 @@ export default function Index() {
                 onClick={toggleShowOperators}
               >
                 {showOperators ? "Ocultar" : "Mostrar"} teclado <img alt="" className="w-6 h-6" src={keyboardIcon}/>
-              </button>
-              <button
-                type="button"
-                onClick={() => setText("")}
-                title="Borrar texto"
-              >
-                <img alt="" className="w-5 h-5" src={resetIcon}/>
               </button>
             </div>
             {showOperators && (
