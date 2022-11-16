@@ -782,18 +782,6 @@ select {
   left: -0.1rem;
 }
 
-.bottom-0 {
-  bottom: 0px;
-}
-
-.top-0 {
-  top: 0px;
-}
-
-.right-0 {
-  right: 0px;
-}
-
 .top-2 {
   top: 0.5rem;
 }
@@ -820,6 +808,10 @@ select {
   margin-right: 0.5rem;
 }
 
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
 .ml-3 {
   margin-left: 0.75rem;
 }
@@ -838,10 +830,6 @@ select {
 
 .mt-4 {
   margin-top: 1rem;
-}
-
-.ml-2 {
-  margin-left: 0.5rem;
 }
 
 .block {
@@ -876,16 +864,16 @@ select {
   height: 0.75rem;
 }
 
+.h-5 {
+  height: 1.25rem;
+}
+
 .h-6 {
   height: 1.5rem;
 }
 
 .h-56 {
   height: 14rem;
-}
-
-.h-5 {
-  height: 1.25rem;
 }
 
 .min-h-\[calc\(100vh_-_32px_-_16px_-_16px_-_56px\)\] {
@@ -914,6 +902,10 @@ select {
   width: calc(100% - 41px);
 }
 
+.w-5 {
+  width: 1.25rem;
+}
+
 .w-6 {
   width: 1.5rem;
 }
@@ -926,10 +918,6 @@ select {
   width: -webkit-fit-content;
   width: -moz-fit-content;
   width: fit-content;
-}
-
-.w-5 {
-  width: 1.25rem;
 }
 
 .flex-1 {
@@ -1220,6 +1208,14 @@ select {
   font-family: 'computer';
 }
 
+.font-\[\'Inter\'\] {
+  font-family: 'Inter';
+}
+
+.font-\[\'Mona_Sans\'\] {
+  font-family: 'Mona Sans';
+}
+
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem;
@@ -1437,6 +1433,10 @@ select {
     left: 0.25rem;
   }
 
+  .md\:ml-0 {
+    margin-left: 0px;
+  }
+
   .md\:ml-5 {
     margin-left: 1.25rem;
   }
@@ -1447,10 +1447,6 @@ select {
 
   .md\:mb-3 {
     margin-bottom: 0.75rem;
-  }
-
-  .md\:ml-0 {
-    margin-left: 0px;
   }
 
   .md\:h-8 {

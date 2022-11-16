@@ -18,7 +18,7 @@ function NavItem({ to, text, reload = false }:
 
 export default function App() {
   return (
-    <div className="bg-gray-900 font-['Mona Sans'] text-white main-background bg-repeat overflow-hidden">
+    <div className="bg-gray-900 font-['Mona_Sans'] text-white main-background bg-repeat overflow-hidden">
       <nav className="bg-slate-800">
         <ul className="flex gap-2 md:gap-6 px-3 items-center">
           <li className="flex"><NavItem to="/" text="Inicio" reload/></li>
