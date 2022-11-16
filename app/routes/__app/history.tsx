@@ -28,9 +28,9 @@ export default function History() {
         (
           <>
             <h2 className="text-base md:text-xl text-white text-center">
-              ¡Hacé click en el enunciado que quieras repasar!
+              ¡Hacé click en el enunciado que quieras resolver!
             </h2>
-            <ul className="space-y-6 list-['\27A1\fe0f']">
+            <ul className="space-y-6 list-['\27A1\fe0f'] ml-2 md:ml-0">
               {history.reverse().map(element => (
                 <li key={element} className="pl-2">
                   <Link className="underline" to={`/?index&text=${encodeURI(element?.replaceAll("%", "%25")?.replaceAll("+", "%2B")?.replaceAll("=", "%3D"))}&h`}>{element}</Link>

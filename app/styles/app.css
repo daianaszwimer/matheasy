@@ -922,12 +922,12 @@ select {
   resize: vertical;
 }
 
-.list-inside {
-  list-style-position: inside;
-}
-
 .list-\[\'-\'\] {
   list-style-type: '-';
+}
+
+.list-\[circle\] {
+  list-style-type: circle;
 }
 
 .list-disc {
@@ -936,22 +936,6 @@ select {
 
 .list-\[\'\\27A1\\fe0f\'\] {
   list-style-type: '\27A1\fe0f';
-}
-
-.list-decimal {
-  list-style-type: decimal;
-}
-
-.list-\[\'\~\'\] {
-  list-style-type: '~';
-}
-
-.list-\[\'circle\'\] {
-  list-style-type: 'circle';
-}
-
-.list-\[circle\] {
-  list-style-type: circle;
 }
 
 .grid-flow-col {
@@ -1184,10 +1168,6 @@ select {
   padding-top: 1.75rem;
 }
 
-.pl-2 {
-  padding-left: 0.5rem;
-}
-
 .pl-1 {
   padding-left: 0.25rem;
 }
@@ -1196,16 +1176,16 @@ select {
   padding-left: 1rem;
 }
 
+.pl-2 {
+  padding-left: 0.5rem;
+}
+
 .text-center {
   text-align: center;
 }
 
 .font-\[\'computer\'\] {
   font-family: 'computer';
-}
-
-.font-\[\'Comfortaa\'\] {
-  font-family: 'Comfortaa';
 }
 
 .text-xl {
@@ -1237,20 +1217,12 @@ select {
   font-weight: 500;
 }
 
-.font-bold {
-  font-weight: 700;
-}
-
-.font-semibold {
-  font-weight: 600;
-}
-
 .font-light {
   font-weight: 300;
 }
 
-.font-normal {
-  font-weight: 400;
+.font-semibold {
+  font-weight: 600;
 }
 
 .italic {
@@ -1443,6 +1415,10 @@ select {
 
   .md\:mb-3 {
     margin-bottom: 0.75rem;
+  }
+
+  .md\:ml-0 {
+    margin-left: 0px;
   }
 
   .md\:h-8 {

@@ -67,7 +67,9 @@ export default function FAQ() {
         <p>
           {"MathEasy es bastante inteligente por lo que entiende casi cualquier enunciado matemático "}
           <span aria-hidden>&#128526;</span>
-          {". Te dejamos algunos ejemplos:"}
+        </p>
+        <p>
+          Te dejamos algunos ejemplos:
         </p>
         <ul className="list-['-']">
           <li className="pl-1">Resolvé la siguiente inecuación: (163 + (x + 9)) * 10 {">"}= 91.</li>
@@ -111,8 +113,6 @@ export default function FAQ() {
           <p>
             {"Por último, puede existir el caso en que MathEasy sí sepa de qué tema se trata el enunciado pero no pueda resolverlo "}
             <span aria-hidden>&#128532;</span>
-            {". ¡No te preocupes! Además de decirte el tema matemático del enunciado, te ofrecerá información conceptual del mismo para que puedas resolverlo por tu cuenta. "}
-            <span aria-hidden>&#128218;</span>
           </p>
         </>
     },
@@ -181,7 +181,7 @@ export default function FAQ() {
       <span className="mr-2" aria-hidden>&#129300;</span>
       Preguntas frecuentes
     </h1>
-    <ul className="list-disc space-y-6">
+    <ul className="list-disc space-y-6 ml-2 md:ml-0">
       {content.map((element) => (
         <li key={element.question} className="space-y-2" id={element.id}>
           <h3 className="text-lg font-semibold">{element.question}</h3>

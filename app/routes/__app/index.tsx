@@ -71,6 +71,9 @@ export const action: ActionFunction = async({ request }) => {
   try {
     const mathExpression = await getExpression(text);
     if (mathExpression === null) {
+      throw new Error("Falla en traduccion");
+    }
+    if (mathExpression.error === INVALID_TEXT_ERROR) {
       throw new Error(INVALID_TEXT_ERROR);
     }
     let [steps, suggestions] = await Promise.all([
@@ -109,7 +112,7 @@ export const action: ActionFunction = async({ request }) => {
           }
         });
       if (expression.status === 400) {
-        throw new Error("No hay una expresión matemática válida");
+        throw new Error(INVALID_TEXT_ERROR);
       }
       if (expression.status !== 200) {
         throw new Error("Status no es 200");
@@ -118,6 +121,10 @@ export const action: ActionFunction = async({ request }) => {
       // retorna { expression, tag }
       return response.result;
     } catch (error) {
+      // @ts-ignore
+      if (error.message === INVALID_TEXT_ERROR) {
+        return { error: INVALID_TEXT_ERROR };
+      }
       console.log("Fallo /math-translation", error);
       return null;
     }
@@ -411,13 +418,13 @@ function StepsError({ type }: {type: Tag}) {
   if (type === "Function") {
     return (
       <>
-        ¡Ups! Sabemos que es una función pero no podemos analizarla{" "}
+        ¡Ups! No puedo analizar esta función{" "}
         <span aria-hidden>&#128546;</span>
       </>
     );
   }
   return <>
-    ¡Ups! Sabemos que es una ecuación pero no podemos resolverla{" "}
+    ¡Ups! No puedo resolver esta ecuación{" "}
     <span aria-hidden>&#128546;</span>
   </>;
 }
@@ -538,6 +545,10 @@ export default function Index() {
   function toggleShowOperators() {
     setShowOperators(prev => !prev);
   }
+
+  let errorTranslation = response?.status &&
+    response?.status !== INVALID_TEXT_ERROR;
+
   let invalidText = response?.status === INVALID_TEXT_ERROR;
 
   let classError = "focus:ring-2 focus:ring-offset-1 focus:ring-rose-300 ring ring-offset-1 ring-rose-700 focus:ring-offset-gray-900";
@@ -603,7 +614,6 @@ export default function Index() {
           <Button
             disabled={transition.state !== "idle" ||
               fetcher.state !== "idle"
-              || text === ""
               // no dejar hacer submit si el texto es el mismo y es error
               || (defaultText === text && invalidText)}
             text={transition.state !== "idle" || fetcher.state !== "idle"
@@ -612,6 +622,19 @@ export default function Index() {
           />
         </div>
       </Form>
+      {errorTranslation && (
+        <div className="text-lg font-light">
+          <p>
+            ¡Ups! No pude armar la expresión matemática. Por favor intentá con otro enunciado{" "}
+            <span aria-hidden>&#128546;</span>
+          </p>
+          <p>Podés resolver tus dudas leyendo{" "}
+            <Link target="_blank" to="/faq#tipo-enunciados" className="underline">
+              ejemplos de enunciados
+            </Link>
+          </p>
+        </div>
+      )}
       {!!response?.result && (
         <div className="space-y-2 text-lg">
           <p>
@@ -743,7 +766,7 @@ export default function Index() {
         (
           <div className="text-lg space-y-1 font-light">
             <p>
-              ¡Ups! No pudimos generar ejercicios similares para este enunciado
+              ¡Ups! No pude generar ejercicios similares{" "}
               <span aria-hidden>&#128546;</span>
             </p>
             <Link target="_blank" to="/faq" className="underline">
