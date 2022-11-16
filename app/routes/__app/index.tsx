@@ -7,6 +7,7 @@ import Latex from "react-latex-next";
 import linkIcon from "~/assets/link.svg";
 import infoIcon from "~/assets/info.svg";
 import keyboardIcon from "~/assets/keyboard.svg";
+import resetIcon from "~/assets/reset.svg";
 
 type MathStep = {
   option: string,
@@ -577,6 +578,7 @@ export default function Index() {
               required
               placeholder="Despejar x de la siguiente ecuación: x + 8 = 9"
               className={textAreaClass}
+              spellCheck
             />
             {invalidText && (
               <div className="text-base font-light space-y-2">
@@ -591,7 +593,22 @@ export default function Index() {
                 </p>
               </div>
             )}
-            <button type="button" className="text-sm underline text-neutral-300 flex items-center gap-2" onClick={toggleShowOperators}>{showOperators ? "Ocultar" : "Mostrar"} teclado <img alt="" className="w-6 h-6" src={keyboardIcon}/></button>
+            <div className="flex justify-between items-center">
+              <button
+                type="button"
+                className="text-sm underline text-neutral-300 flex items-center gap-2"
+                onClick={toggleShowOperators}
+              >
+                {showOperators ? "Ocultar" : "Mostrar"} teclado <img alt="" className="w-6 h-6" src={keyboardIcon}/>
+              </button>
+              <button
+                type="button"
+                onClick={() => setText("")}
+                title="Borrar texto"
+              >
+                <img alt="" className="w-5 h-5" src={resetIcon}/>
+              </button>
+            </div>
             {showOperators && (
               <div className="grid gap-2 md:grid-rows-1 grid-rows-2 grid-flow-col md:auto-cols-auto">
                 <OperationButton text="x" operator="x" onClick={addOperator} title="Incógnita"/>
