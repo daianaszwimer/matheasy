@@ -864,6 +864,10 @@ select {
   height: 14rem;
 }
 
+.h-5 {
+  height: 1.25rem;
+}
+
 .min-h-\[calc\(100vh_-_32px_-_16px_-_16px_-_56px\)\] {
   min-height: calc(100vh - 32px - 16px - 16px - 56px);
 }
@@ -902,6 +906,10 @@ select {
   width: -webkit-fit-content;
   width: -moz-fit-content;
   width: fit-content;
+}
+
+.w-5 {
+  width: 1.25rem;
 }
 
 .flex-1 {
@@ -964,6 +972,10 @@ select {
 
 .justify-center {
   justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
 }
 
 .gap-2 {
