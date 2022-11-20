@@ -207,7 +207,7 @@ function Step(
         className="border-white border-l gap-8 items-center w-full wrap overflow-hidden p-5 md:p-10 h-full flex md:ml-5 ml-3"
       >
         <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
-          <p className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+          <p className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
             {order}
           </p>
         </div>
@@ -258,7 +258,7 @@ function Step(
     <div ref={element}
       className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
       <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
-        <p className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+        <p className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
           {order}
         </p>
       </div>
@@ -317,7 +317,7 @@ function FunctionStep({ step }: FunctionSteProps) {
     <div
       className="font-['computer'] border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
       <div aria-hidden className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
-        <span className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+        <span className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
           &#10140;
         </span>
       </div>
@@ -360,7 +360,7 @@ function Button(
       <button
         disabled={disabled}
         type="button"
-        className="w-full font-semibold block w-full md:px-6 md:py-4 px-4 py-2 rounded-md shadow bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+        className="w-full font-bold block w-full md:px-6 md:py-4 px-4 py-2 rounded-md shadow bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
         onClick={onClick}
       >
         {text}
@@ -371,7 +371,7 @@ function Button(
     <button
       disabled={disabled}
       type="submit"
-      className={`w-full font-semibold block w-full md:px-6 md:py-4
+      className={`w-full font-bold block w-full md:px-6 md:py-4
       px-4 py-2 rounded-md shadow bg-indigo-500
       hover:bg-indigo-600 focus:outline-none
       focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300
@@ -759,7 +759,7 @@ export default function Index() {
                   <div
                     className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
                     <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
-                      <p className="mx-auto font-semibold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+                      <p className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
                         &#10140;
                       </p>
                     </div>
