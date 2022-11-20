@@ -56,7 +56,7 @@ export default function FAQ() {
           {" Es por esto que tenés dos opciones:"}
         </p>
         <p>
-          Podés elegir entre ver <b className="font-semibold italic">paso por paso</b>, haciendo click en el botón de "Primer/Siguiente/Último paso" o bien ver <b className="font-semibold italic">todos los pasos de una</b>, con el botón de "Saltear pasos". ¡Queremos que vos elijas cuál opción preferís!
+          Podés elegir entre ver <b className="font-bold italic">paso por paso</b>, haciendo click en el botón de "Primer/Siguiente/Último paso" o bien ver <b className="font-semibold italic">todos los pasos de una</b>, con el botón de "Saltear pasos". ¡Queremos que vos elijas cuál opción preferís!
         </p>
       </>
     },
@@ -184,7 +184,7 @@ export default function FAQ() {
     <ul className="list-disc space-y-6 ml-2 md:ml-0">
       {content.map((element) => (
         <li key={element.question} className="space-y-2" id={element.id}>
-          <h3 className="text-lg font-semibold">{element.question}</h3>
+          <h3 className="text-lg font-bold">{element.question}</h3>
           {element.answer()}
         </li>
       ))}

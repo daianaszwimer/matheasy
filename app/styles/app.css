@@ -1204,16 +1204,16 @@ select {
   text-align: center;
 }
 
+.font-\[\'Mona_Sans\'\] {
+  font-family: 'Mona Sans';
+}
+
 .font-\[\'computer\'\] {
   font-family: 'computer';
 }
 
-.font-\[\'Inter\'\] {
-  font-family: 'Inter';
-}
-
-.font-\[\'Mona_Sans\'\] {
-  font-family: 'Mona Sans';
+.font-\[\'Nunito\'\] {
+  font-family: 'Nunito';
 }
 
 .text-xl {
@@ -1251,6 +1251,10 @@ select {
 
 .font-semibold {
   font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
 }
 
 .italic {
