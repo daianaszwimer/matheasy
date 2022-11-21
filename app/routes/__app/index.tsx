@@ -1,4 +1,13 @@
-import { Form, Link, useActionData, useFetcher, useLoaderData, useLocation, useTransition } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  useActionData,
+  useFetcher,
+  useLoaderData,
+  useLocation,
+  useSubmit,
+  useTransition
+} from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type {  ActionFunction , LoaderFunction } from "@remix-run/node";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
@@ -204,10 +213,10 @@ function Step(
   if (hide) {
     return (
       <div
-        className="border-white border-l gap-8 items-center w-full wrap overflow-hidden p-5 md:p-10 h-full flex md:ml-5 ml-3"
+        className="border-white border-l gap-8 items-center w-full wrap overflow-hidden py-4 px-6 h-full flex md:ml-5 ml-3"
       >
         <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
-          <p className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+          <p className="mx-auto font-bold text-base text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
             {order}
           </p>
         </div>
@@ -215,8 +224,8 @@ function Step(
           className="w-full flex blur select-none"
           aria-hidden
         >
-          <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2 text-base md:text-lg">
-            <p className="mb-3 text-neutral-900 flex-1">{step.option}</p>
+          <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2 space-y-2">
+            <p className="text-neutral-900 flex-1">{step.option}</p>
             <p className="leading-snug tracking-wide text-neutral-900">
               {step.equationOptions?.map(
                 (option) =>
@@ -226,29 +235,31 @@ function Step(
               )}
             </p>
             {step.info && !showMore &&
-              <div className="flex md:mt-3 mt-2 gap-1.5">
+              <div className="flex gap-1.5">
                 <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
-                <p className="text-sm underline text-neutral-800">Ver más</p>
+                <p className="text-sm underline text-neutral-800">Más info</p>
               </div>
             }
           </div>
         </div>
         {isNext &&
-          <div className="flex gap-3 absolute justify-center md:w-[calc(100%_-_82px)] w-[calc(100%_-_41px)]">
+          <div className="font-bold flex gap-3 absolute justify-center md:w-[calc(100%_-_82px)] w-[calc(100%_-_41px)]">
             <button
               aria-label="Ir al siguiente paso"
               onClick={onClick}
               className="md:text-base text-sm rounded-lg md:p-4 p-3 bg-indigo-500 hover:bg-indigo-600"
             >
-              {order === 1 ? "Primer paso" : isLast ? "Último paso" : "Siguiente paso"}
+              Siguiente paso
             </button>
-            {!isLast && <button
-              aria-label="Mostrar todos los pasos"
-              onClick={showAll}
-              className="md:text-base text-sm rounded-lg md:p-4 p-3 bg-gray-900 hover:bg-black"
-            >
-              Saltear pasos
-            </button>}
+            {!isLast &&
+              <button
+                aria-label="Mostrar todos los pasos"
+                onClick={showAll}
+                className="md:text-base text-sm rounded-lg md:p-4 p-3 bg-gray-900 hover:bg-black"
+              >
+                Mostrar solución
+              </button>
+            }
           </div>
         }
       </div>
@@ -256,15 +267,15 @@ function Step(
   }
   return (
     <div ref={element}
-      className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
+      className="border-white border-l gap-8 items-center w-full wrap py-4 px-6 h-full flex md:ml-5 ml-3">
       <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
         <p className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
           {order}
         </p>
       </div>
-      <div className="w-full flex text-base md:text-lg">
-        <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
-          <div className="flex items-center gap-1.5 md:mb-3 mb-2">
+      <div className="w-full flex text-base">
+        <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2 space-y-2">
+          <div className="flex items-center">
             <p className="text-neutral-900 flex-1">{step.option}</p>
           </div>
           <p className="leading-snug tracking-wide text-neutral-900">
@@ -277,14 +288,14 @@ function Step(
           {step.info && !showMore &&
             <button className="flex md:mt-3 mt-2 gap-1.5" onClick={() => setShowMore(true)}>
               <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
-              <p className="text-sm underline text-neutral-800 cursor-pointer">Ver más</p>
+              <p className="text-sm underline text-neutral-800 cursor-pointer">Más info</p>
             </button>
           }
           {showMore &&
             <div className="md:mt-3 mt-2 space-y-2">
               <button className="flex gap-2" onClick={() => setShowMore(false)}>
                 <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
-                <p className="text-sm underline text-neutral-800 cursor-pointer">Ver menos</p>
+                <p className="text-sm underline text-neutral-800 cursor-pointer">Ocultar info</p>
               </button>
               <p className="text-sm text-neutral-800">{step.info}</p>
             </div>
@@ -315,15 +326,15 @@ function FunctionStep({ step }: FunctionSteProps) {
 
   return (
     <div
-      className="font-['computer'] border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
+      className="font-['computer'] border-white border-l gap-8 items-center w-full wrap py-4 px-6 h-full flex md:ml-5 ml-3">
       <div aria-hidden className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
         <span className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
           &#10140;
         </span>
       </div>
       <div className="w-full flex">
-        <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2 text-base md:text-lg">
-          <p className="text-neutral-900 md:mb-3 mb-2">{step.option}</p>
+        <div className="flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2 space-y-2">
+          <p className="text-neutral-900">{step.option}</p>
           <p className="leading-snug tracking-wide text-neutral-900">
             {step.equationOptions?.map(
               (option) => <Fragment key={option.content}>
@@ -332,16 +343,16 @@ function FunctionStep({ step }: FunctionSteProps) {
             )}
           </p>
           {step.info && !showMore &&
-            <button className="flex md:mt-3 mt-2 gap-1.5" onClick={() => setShowMore(true)}>
+            <button className="flex gap-1.5" onClick={() => setShowMore(true)}>
               <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
-              <p className="text-sm underline text-neutral-800 cursor-pointer">Ver más</p>
+              <p className="text-sm underline text-neutral-800 cursor-pointer">Más info</p>
             </button>
           }
           {showMore &&
-            <div className="md:mt-3 mt-2 space-y-2">
+            <div className="space-y-2">
               <button className="flex gap-2" onClick={() => setShowMore(false)}>
                 <img src={infoIcon} alt="information" className="w-3 h-3 my-auto"/>
-                <p className="text-sm underline text-neutral-800 cursor-pointer">Ver menos</p>
+                <p className="text-sm underline text-neutral-800 cursor-pointer">Ocultar info</p>
               </button>
               <p className="text-sm text-neutral-800">{step.info}</p>
             </div>
@@ -360,7 +371,7 @@ function Button(
       <button
         disabled={disabled}
         type="button"
-        className="w-full font-bold block w-full md:px-6 md:py-4 px-4 py-2 rounded-md shadow bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
+        className="text-lg w-full md:w-60 md:min-w-fit font-bold block md:px-6 md:py-3 px-4 py-2 rounded-md shadow bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 focus:ring-offset-gray-900"
         onClick={onClick}
       >
         {text}
@@ -371,8 +382,8 @@ function Button(
     <button
       disabled={disabled}
       type="submit"
-      className={`w-full font-bold block w-full md:px-6 md:py-4
-      px-4 py-2 rounded-md shadow bg-indigo-500
+      className={`text-lg w-full md:w-60 md:min-w-fit font-bold block
+      md:px-6 md:py-3 px-4 py-2 rounded-md shadow bg-indigo-500
       hover:bg-indigo-600 focus:outline-none
       focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300
       focus:ring-offset-gray-900
@@ -454,11 +465,19 @@ export default function Index() {
   const [showOperators, setShowOperators] = useState<boolean>(true);
   const textArea = useRef<HTMLTextAreaElement>(null);
   const location = useLocation();
-  const fetcher = useFetcher();
-  let response = data || fetcher.data;
-  const isFunction = response?.type === "Function";
-  const offerSuggestions = step === "steps" && response?.steps?.length && stepByStep === response?.steps?.length - 1;
-  const [mark, setMark] = useState(false);
+  const isFunction = data?.type === "Function";
+  const offerSuggestions = step === "steps" && data?.steps?.length && stepByStep === data?.steps?.length - 1;
+  const suggestions = useRef<HTMLDivElement>(null);
+  const submit = useSubmit();
+
+  useEffect(() => {
+    if (step === "suggestions" && suggestions?.current) {
+      suggestions.current.scrollIntoView({
+        behavior: "smooth"
+      });
+    }
+  }, [step, suggestions]);
+
   const graph = useMemo(() => {
     if (!calculator?.current) return;
     // @ts-ignore
@@ -466,18 +485,23 @@ export default function Index() {
   }, [calculator, calculator?.current]);
 
   useEffect(() => {
-    if (mark || !autoResolve) return;
-    setMark(true);
-    fetcher.submit(
-      { problem: defaultText || "" },
-      { method: "post", action: `${location.pathname}${location.search ? location.search : "?index"}` }
+    setText(defaultText || "");
+  }, [defaultText]);
+
+  useEffect(() => {
+    if (!autoResolve || !defaultText || data) return;
+    let formData = new FormData();
+    formData.set("problem", defaultText);
+    submit(
+      formData,
+      { method: "post", action: `${location.pathname}${location.search}` }
     );
   }, [
     autoResolve,
     defaultText,
-    fetcher,
+    submit,
     location,
-    mark
+    data
   ]);
   useEffect(() => {
     if (!hasLinkCopied) return;
@@ -494,23 +518,23 @@ export default function Index() {
   }
 
   useEffect(() => {
-    if (!response?.result) return;
+    if (!data?.result) return;
     setStep(isFunction ? "function" : "steps");
     setStepByStep(-1);
-  }, [response?.result, response?.error, isFunction, calculator]);
+  }, [data?.result, data?.error, isFunction, calculator]);
 
   useEffect(() => {
-    if ("function" !== step || !response?.result || !graph) {
+    if ("function" !== step || !data?.result || !graph) {
       return;
     }
-    graph.setExpression({ id: "graph", latex: `f(x) = ${response.result}` });
-  }, [calculator, step, response?.result, graph]);
+    graph.setExpression({ id: "graph", latex: `f(x) = ${data.result}` });
+  }, [calculator, step, data?.result, graph]);
 
   useEffect(() => {
-    if (response?.error || !response?.text) return;
+    if (data?.error || !data?.text) return;
     let history = JSON.parse(localStorage.getItem("ejercicios") || "[]");
     // si el elemento ya existe moverlo de lugar al ultimo
-    let index = history.indexOf(response?.text);
+    let index = history.indexOf(data?.text);
     if (index !== -1) {
       // muevo el elemento al final de la lista
       history.push(history.splice(index, 1)[0]);
@@ -519,13 +543,13 @@ export default function Index() {
     }
     // me aseguro que hayan como mucho 10 enunciados
     if (history.length < 10) {
-      history.push(response?.text);
+      history.push(data?.text);
     } else {
       history.shift();
-      history.push(response?.text);
+      history.push(data?.text);
     }
     localStorage.setItem("ejercicios", JSON.stringify(history));
-  }, [response?.error, response?.text]);
+  }, [data?.error, data?.text]);
 
   useEffect(() => {
     if (operator.current) {
@@ -547,10 +571,10 @@ export default function Index() {
     setShowOperators(prev => !prev);
   }
 
-  let errorTranslation = response?.status &&
-    response?.status !== INVALID_TEXT_ERROR;
+  let errorTranslation = data?.status &&
+    data?.status !== INVALID_TEXT_ERROR;
 
-  let invalidText = response?.status === INVALID_TEXT_ERROR;
+  let invalidText = data?.status === INVALID_TEXT_ERROR;
 
   let classError = "focus:ring-2 focus:ring-offset-1 focus:ring-rose-300 ring ring-offset-1 ring-rose-700 focus:ring-offset-gray-900";
 
@@ -563,7 +587,7 @@ export default function Index() {
         Resolvé un ejercicio
       </h1>
       <Form method="post" action={`${location.pathname}?index&text=${encodeText(text)}`}>
-        <div className="flex-col h-full w-full mx-auto space-y-3">
+        <div className="flex-col h-full w-full mx-auto space-y-4">
           <div className="space-y-2 text-lg">
             <label htmlFor="problem">
               Ingresá el enunciado matemático
@@ -571,7 +595,7 @@ export default function Index() {
             <div className="relative">
               <textarea
                 ref={textArea}
-                disabled={transition.state !== "idle" || fetcher.state !== "idle"}
+                disabled={transition.state !== "idle"}
                 id="problem"
                 name="problem"
                 value={text}
@@ -634,11 +658,10 @@ export default function Index() {
             )}
           </div>
           <Button
-            disabled={transition.state !== "idle" ||
-              fetcher.state !== "idle"
+            disabled={transition.state !== "idle"
               // no dejar hacer submit si el texto es el mismo y es error
               || (defaultText === text && invalidText)}
-            text={transition.state !== "idle" || fetcher.state !== "idle"
+            text={transition.state !== "idle"
               ? "Calculando..."
               : "Calcular"}
           />
@@ -657,35 +680,36 @@ export default function Index() {
           </p>
         </div>
       )}
-      {!!response?.result && (
-        <div className="space-y-2 text-lg">
+      {!!data?.result && (
+        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-lg">
           <p>
-            La expresión matemática es
+            Expresión matemática:
           </p>
-          <div className="font-medium bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+          <div className="font-medium bg-white rounded-lg shadow-xl md:py-3 px-4 py-2">
             <p className="text-neutral-900" aria-hidden>
               <Latex>
                 {isFunction ?
-                  `$f(x) = ${response.result}$` : `$${response.result}$`}
+                  `$f(x) = ${data.result}$` : `$${data.result}$`}
               </Latex>
             </p>
             <p className="sr-only">
               {isFunction ?
-                `f(x) = ${response.result}` : response.result}
+                `f(x) = ${data.result}` : data.result}
             </p>
           </div>
         </div>
       )}
       {/* timeline */}
-      {["steps", "suggestions"].includes(step) && !isFunction && response?.steps?.length > 0 &&
+      {["steps", "suggestions"].includes(step) && !isFunction &&
+        data?.steps?.length && data?.steps?.length > 0 &&
         (
           <div className="space-y-3">
-            <p className="text-lg">Los pasos para resolverla son</p>
-            <Link target="_blank" to="/faq#pasos" className="text-sm underline text-neutral-300">
+            <p className="text-lg">Resolución paso por paso</p>
+            <Link target="_blank" to="/faq#pasos" className="underline text-neutral-300">
               ¿Necesitás ayuda?
             </Link>
             <ul className="container mx-auto w-full h-full relative">
-              {response?.steps?.map((s: MathStep, index: number) =>
+              {data?.steps?.map((s: MathStep, index: number) =>
                 <li key={`${s.option} ${index}`}>
                   <Step
                     hide={stepByStep < index}
@@ -693,9 +717,9 @@ export default function Index() {
                     step={s}
                     onClick={nextStep}
                     isNext={stepByStep === (index - 1)}
-                    isLast={index === response?.steps?.length - 1}
+                    isLast={index === (data?.steps?.length || 0) - 1}
                     showAll={() => setStepByStep(
-                      response?.steps?.length - 1 || 0
+                      (data?.steps?.length || 0) - 1 || 0
                     )}
                   />
                 </li>
@@ -710,7 +734,7 @@ export default function Index() {
           <>
             <div ref={calculator} id="calculator" className="md:h-96 h-56" style={{ "width": "100%" }}></div>
             <ul className="container mx-auto w-full h-full relative">
-              {response?.steps?.map((s: MathStep, index: number) => {
+              {data?.steps?.map((s: MathStep, index: number) => {
                 return (
                   <li key={`${s.option} ${index}`}>
                     <FunctionStep order={index} step={s}/>
@@ -721,12 +745,12 @@ export default function Index() {
           </>
         )
       }
-      {response?.steps === null &&
+      {data?.steps === null &&
         (
           <div className="text-lg font-light">
             <p>
-              {response?.result && response?.type ?
-                <StepsError type={response.type}/> : response.error
+              {data?.result && data?.type ?
+                <StepsError type={data.type}/> : data.error
               }
             </p>
             <p>Podés resolver tus dudas leyendo{" "}
@@ -737,33 +761,30 @@ export default function Index() {
           </div>
         )
       }
-      {response?.suggestions && ((isFunction || offerSuggestions) || step === "suggestions") &&
+      {data?.suggestions && ((isFunction || offerSuggestions) || step === "suggestions") &&
         <div className="mt-4">
           <Button
-            text="Ver ejercicios parecidos"
+            text="Mostrar ejercicios similares"
             disabled={false}
             type="button"
             onClick={() => setStep("suggestions")}
           />
         </div>
       }
-      {response?.suggestions && step === "suggestions" &&
+      {data?.suggestions && step === "suggestions" &&
         (
-          <div className="space-y-3 text-lg">
-            <p>
-              Más ejercicios
-            </p>
+          <div className="space-y-3 text-lg" ref={suggestions}>
             <ul className="container mx-auto w-full h-full relative">
-              {response?.suggestions?.map((suggestion: string) =>
+              {data?.suggestions?.map((suggestion: string) =>
                 <li key={suggestion}>
                   <div
-                    className="border-white border-l gap-8 items-center w-full wrap p-5 md:p-10 h-full flex md:ml-5 ml-3">
+                    className="border-white border-l gap-8 items-center w-full wrap py-4 px-6 h-full flex md:ml-5 ml-3">
                     <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
                       <p className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
                         &#10140;
                       </p>
                     </div>
-                    <div className="w-full flex text-base md:text-lg">
+                    <div className="flex text-base md:text-lg">
                       <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
                         <div className="leading-snug tracking-wide text-neutral-900">
                           <p aria-hidden>
@@ -784,7 +805,7 @@ export default function Index() {
           </div>
         )
       }
-      {response?.suggestions === null &&
+      {data?.suggestions === null &&
         (
           <div className="text-lg space-y-1 font-light">
             <p>
@@ -797,13 +818,13 @@ export default function Index() {
           </div>
         )
       }
-      {!!response?.result && !response?.error &&
+      {!!data?.result && !data?.error &&
         <div className="flex flex-col md:flex-row gap-3 md:items-center items-start">
           <button
             aria-label="Copiar link al ejercicio"
-            className="font-medium justify-center rounded-lg text-sm md:p-3 p-2 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
+            className="font-bold justify-center rounded-lg md:p-3 p-2 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
             onClick={async () => {
-              const link = `${url}?text=${encodeText(response?.text)}`;
+              const link = `${url}?text=${encodeText(data?.text)}`;
               if ("clipboard" in navigator) {
                 await navigator.clipboard.writeText(link);
                 setHasLinkCopied(true);
@@ -814,10 +835,10 @@ export default function Index() {
             }}
           >
             <img src={linkIcon} alt="" className="w-4"/>
-            <p aria-hidden>¡Copia el link al ejercicio y compartilo!</p>
+            <p aria-hidden>¡Compartí el ejercicio!</p>
           </button>
           <div className={`bg-green-50 border-l-8 border-green-500 p-3 w-fit rounded-md transition-opacity ${hasLinkCopied ? "opacity-100" : "opacity-0 invisible"}`}>
-            <p className="text-green-900 text-sm font-medium">¡Copiado!</p>
+            <p className="text-green-900 text-sm font-medium">¡Link copiado!</p>
           </div>
         </div>
       }
