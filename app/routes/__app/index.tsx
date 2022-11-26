@@ -525,7 +525,6 @@ export default function Index() {
   }
 
   useEffect(() => {
-    if (!mainForm.data?.result) return;
     setStep(isFunction ? "function" : "steps");
     setStepByStep(-1);
   }, [mainForm.data, isFunction, calculator]);
