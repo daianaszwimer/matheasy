@@ -1,12 +1,8 @@
 import {
-  Form,
   Link,
-  useActionData,
   useFetcher,
   useLoaderData,
-  useLocation,
-  useSubmit,
-  useTransition
+  useLocation
 } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type {  ActionFunction , LoaderFunction } from "@remix-run/node";
@@ -35,7 +31,7 @@ interface ActionData {
   steps?: MathStep[] | null;
   suggestions?: string[] | null;
   text: string;
-  type?: Tag | null;
+  tag?: Tag | null;
   status?: string | null;
 }
 
@@ -79,25 +75,34 @@ export const action: ActionFunction = async({ request }) => {
   const body = await request.formData();
   const text = body.get("problem") as string;
   try {
-    const mathExpression = await getExpression(text);
-    if (mathExpression === null) {
-      throw new Error("Falla en traduccion");
-    }
-    if (mathExpression.error === INVALID_TEXT_ERROR) {
-      throw new Error(INVALID_TEXT_ERROR);
-    }
-    let [steps, suggestions] = await Promise.all([
-      getResolution(mathExpression.expression, mathExpression.tag),
-      getSuggestions(mathExpression.expression, mathExpression.tag)
-    ]);
+    let action = body.get("action");
+    if (action === "main") {
+      const mathExpression = await getExpression(text);
+      if (mathExpression === null) {
+        throw new Error("Falla en traduccion");
+      }
+      if (mathExpression.error === INVALID_TEXT_ERROR) {
+        throw new Error(INVALID_TEXT_ERROR);
+      }
+      let steps = await
+      getResolution(mathExpression.expression, mathExpression.tag);
 
-    return json<ActionData>({
-      result: mathExpression?.expression || null,
-      steps: steps ? steps as MathStep[] : null,
-      suggestions: suggestions ? suggestions as string[] : null,
-      text,
-      type: mathExpression ? mathExpression.tag as Tag : null
-    });
+      return json<ActionData>({
+        result: mathExpression?.expression || null,
+        steps: steps ? steps as MathStep[] : null,
+        text,
+        tag: mathExpression ? mathExpression.tag as Tag : null
+      });
+    }
+    if (action === "suggestions") {
+      const tag = body.get("tag") as string;
+      const expression = body.get("expression") as string;
+
+      let suggestions = await getSuggestions(expression, tag);
+      return json<{ suggestions: string[] | null }>({
+        suggestions: suggestions ? suggestions as string[] : null
+      });
+    }
   } catch(error) {
     console.log(error);
     let status = null;
@@ -453,8 +458,6 @@ export function ErrorBoundary() {
 }
 
 export default function Index() {
-  const transition = useTransition();
-  const data = useActionData<ActionData>();
   const { defaultText, url, autoResolve } = useLoaderData<LoaderData>();
   const [text, setText] = useState<string>(defaultText || "");
   const operator = useRef(0);
@@ -465,18 +468,24 @@ export default function Index() {
   const [showOperators, setShowOperators] = useState<boolean>(true);
   const textArea = useRef<HTMLTextAreaElement>(null);
   const location = useLocation();
-  const isFunction = data?.type === "Function";
-  const offerSuggestions = step === "steps" && data?.steps?.length && stepByStep === data?.steps?.length - 1;
+  const mainForm = useFetcher();
+  const suggestionsForm = useFetcher();
+  const isFunction = mainForm.data?.tag === "Function";
+  const offerSuggestions = step === "steps" && mainForm.data?.steps?.length && stepByStep === mainForm.data?.steps?.length - 1;
   const suggestions = useRef<HTMLDivElement>(null);
-  const submit = useSubmit();
 
   useEffect(() => {
-    if (step === "suggestions" && suggestions?.current) {
+    if (suggestionsForm.data?.suggestions && suggestions?.current) {
       suggestions.current.scrollIntoView({
         behavior: "smooth"
       });
     }
-  }, [step, suggestions]);
+  }, [suggestionsForm.data, suggestions?.current, suggestions]);
+
+  useEffect(() => {
+    if (suggestionsForm.data?.suggestions === undefined) return;
+    setStep("suggestions");
+  }, [suggestionsForm.data]);
 
   const graph = useMemo(() => {
     if (!calculator?.current) return;
@@ -489,19 +498,17 @@ export default function Index() {
   }, [defaultText]);
 
   useEffect(() => {
-    if (!autoResolve || !defaultText || data) return;
-    let formData = new FormData();
-    formData.set("problem", defaultText);
-    submit(
-      formData,
+    if (!autoResolve || !defaultText || defaultText === mainForm.data?.text || mainForm.type !== "init") return;
+    mainForm.submit(
+      { problem: defaultText, action: "main" },
       { method: "post", action: `${location.pathname}${location.search}` }
     );
   }, [
     autoResolve,
     defaultText,
-    submit,
+    mainForm,
     location,
-    data
+    mainForm.data
   ]);
   useEffect(() => {
     if (!hasLinkCopied) return;
@@ -518,23 +525,23 @@ export default function Index() {
   }
 
   useEffect(() => {
-    if (!data?.result) return;
+    if (!mainForm.data?.result) return;
     setStep(isFunction ? "function" : "steps");
     setStepByStep(-1);
-  }, [data?.result, data?.error, isFunction, calculator]);
+  }, [mainForm.data, isFunction, calculator]);
 
   useEffect(() => {
-    if ("function" !== step || !data?.result || !graph) {
+    if ("function" !== step || !mainForm.data?.result || !graph) {
       return;
     }
-    graph.setExpression({ id: "graph", latex: `f(x) = ${data.result}` });
-  }, [calculator, step, data?.result, graph]);
+    graph.setExpression({ id: "graph", latex: `f(x) = ${mainForm.data.result}` });
+  }, [calculator, step, mainForm.data?.result, graph]);
 
   useEffect(() => {
-    if (data?.error || !data?.text) return;
+    if (mainForm.data?.error || !mainForm.data?.text) return;
     let history = JSON.parse(localStorage.getItem("ejercicios") || "[]");
     // si el elemento ya existe moverlo de lugar al ultimo
-    let index = history.indexOf(data?.text);
+    let index = history.indexOf(mainForm.data?.text);
     if (index !== -1) {
       // muevo el elemento al final de la lista
       history.push(history.splice(index, 1)[0]);
@@ -543,13 +550,13 @@ export default function Index() {
     }
     // me aseguro que hayan como mucho 10 enunciados
     if (history.length < 10) {
-      history.push(data?.text);
+      history.push(mainForm.data?.text);
     } else {
       history.shift();
-      history.push(data?.text);
+      history.push(mainForm.data?.text);
     }
     localStorage.setItem("ejercicios", JSON.stringify(history));
-  }, [data?.error, data?.text]);
+  }, [mainForm.data?.error, mainForm.data?.text]);
 
   useEffect(() => {
     if (operator.current) {
@@ -571,14 +578,14 @@ export default function Index() {
     setShowOperators(prev => !prev);
   }
 
-  let errorTranslation = data?.status &&
-    data?.status !== INVALID_TEXT_ERROR;
+  let errorTranslation = mainForm.data?.status &&
+    mainForm.data?.status !== INVALID_TEXT_ERROR;
 
-  let invalidText = data?.status === INVALID_TEXT_ERROR;
+  let invalidText = mainForm.data?.status === INVALID_TEXT_ERROR;
 
   let classError = "focus:ring-2 focus:ring-offset-1 focus:ring-rose-300 ring ring-offset-1 ring-rose-700 focus:ring-offset-gray-900";
 
-  let textAreaClass = `min-h-fit overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-neutral-400 focus:outline-none ${invalidText && defaultText === text ? classError : "focus:ring-offset-1 focus:ring-2 focus:ring-indigo-300 focus:ring-offset-gray-900"}`;
+  let textAreaClass = `min-h-fit overflow-auto resize-y block w-full md:px-6 md:py-4 px-4 py-2 rounded-md border-0 text-base text-neutral-900 placeholder-neutral-400 focus:outline-none ${invalidText && mainForm.data?.text === text ? classError : "focus:ring-offset-1 focus:ring-2 focus:ring-indigo-300 focus:ring-offset-gray-900"}`;
 
   return (
     <>
@@ -586,7 +593,8 @@ export default function Index() {
         <span className="mr-2" aria-hidden>&#128221;</span>
         Resolvé un ejercicio
       </h1>
-      <Form method="post" action={`${location.pathname}?index&text=${encodeText(text)}`}>
+      <mainForm.Form method="post" action={`${location.pathname}?index&text=${encodeText(text)}`}>
+        <input type="hidden" name="action" value="main" />
         <div className="flex-col h-full w-full mx-auto space-y-4">
           <div className="space-y-2 text-lg">
             <label htmlFor="problem">
@@ -595,7 +603,7 @@ export default function Index() {
             <div className="relative">
               <textarea
                 ref={textArea}
-                disabled={transition.state !== "idle"}
+                disabled={mainForm.state !== "idle"}
                 id="problem"
                 name="problem"
                 value={text}
@@ -658,15 +666,15 @@ export default function Index() {
             )}
           </div>
           <Button
-            disabled={transition.state !== "idle"
+            disabled={mainForm.state !== "idle"
               // no dejar hacer submit si el texto es el mismo y es error
-              || (defaultText === text && invalidText)}
-            text={transition.state !== "idle"
+              || (mainForm.data?.text === text && invalidText)}
+            text={mainForm.state !== "idle"
               ? "Calculando..."
               : "Calcular"}
           />
         </div>
-      </Form>
+      </mainForm.Form>
       {errorTranslation && (
         <div className="text-lg font-light">
           <p>
@@ -680,7 +688,7 @@ export default function Index() {
           </p>
         </div>
       )}
-      {!!data?.result && (
+      {!!mainForm.data?.result && (
         <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-lg">
           <p>
             Expresión matemática:
@@ -689,19 +697,21 @@ export default function Index() {
             <p className="text-neutral-900" aria-hidden>
               <Latex>
                 {isFunction ?
-                  `$f(x) = ${data.result}$` : `$${data.result}$`}
+                  `$f(x) = ${mainForm.data.result}$`
+                  : `$${mainForm.data.result}$`
+                }
               </Latex>
             </p>
             <p className="sr-only">
               {isFunction ?
-                `f(x) = ${data.result}` : data.result}
+                `f(x) = ${mainForm.data.result}` : mainForm.data.result}
             </p>
           </div>
         </div>
       )}
       {/* timeline */}
       {["steps", "suggestions"].includes(step) && !isFunction &&
-        data?.steps?.length && data?.steps?.length > 0 &&
+        mainForm.data?.steps?.length && mainForm.data?.steps?.length > 0 &&
         (
           <div className="space-y-3">
             <p className="text-lg">Resolución paso por paso</p>
@@ -709,7 +719,7 @@ export default function Index() {
               ¿Necesitás ayuda?
             </Link>
             <ul className="container mx-auto w-full h-full relative">
-              {data?.steps?.map((s: MathStep, index: number) =>
+              {mainForm.data?.steps?.map((s: MathStep, index: number) =>
                 <li key={`${s.option} ${index}`}>
                   <Step
                     hide={stepByStep < index}
@@ -717,9 +727,9 @@ export default function Index() {
                     step={s}
                     onClick={nextStep}
                     isNext={stepByStep === (index - 1)}
-                    isLast={index === (data?.steps?.length || 0) - 1}
+                    isLast={index === (mainForm.data?.steps?.length || 0) - 1}
                     showAll={() => setStepByStep(
-                      (data?.steps?.length || 0) - 1 || 0
+                      (mainForm.data?.steps?.length || 0) - 1 || 0
                     )}
                   />
                 </li>
@@ -734,7 +744,7 @@ export default function Index() {
           <>
             <div ref={calculator} id="calculator" className="md:h-96 h-56" style={{ "width": "100%" }}></div>
             <ul className="container mx-auto w-full h-full relative">
-              {data?.steps?.map((s: MathStep, index: number) => {
+              {mainForm.data?.steps?.map((s: MathStep, index: number) => {
                 return (
                   <li key={`${s.option} ${index}`}>
                     <FunctionStep order={index} step={s}/>
@@ -745,12 +755,12 @@ export default function Index() {
           </>
         )
       }
-      {data?.steps === null &&
+      {mainForm.data?.steps === null &&
         (
           <div className="text-lg font-light">
             <p>
-              {data?.result && data?.type ?
-                <StepsError type={data.type}/> : data.error
+              {mainForm.data?.result && mainForm.data?.tag ?
+                <StepsError type={mainForm.data.tag}/> : mainForm.data.error
               }
             </p>
             <p>Podés resolver tus dudas leyendo{" "}
@@ -761,21 +771,25 @@ export default function Index() {
           </div>
         )
       }
-      {data?.suggestions && ((isFunction || offerSuggestions) || step === "suggestions") &&
-        <div className="mt-4">
+      {((isFunction || offerSuggestions) || step === "suggestions") &&
+        <suggestionsForm.Form className="mt-4" method="post">
+          <input type="hidden" name="action" value="suggestions" />
+          <input type="hidden" name="tag" value={mainForm.data?.tag} />
+          <input type="hidden" name="expression" value={mainForm.data?.result} />
           <Button
-            text="Mostrar ejercicios similares"
-            disabled={false}
-            type="button"
-            onClick={() => setStep("suggestions")}
+            disabled={suggestionsForm.state !== "idle"}
+            text={suggestionsForm.state !== "idle"
+              ? "Buscando..."
+              : "Buscar ejercicios similares"}
+            type="submit"
           />
-        </div>
+        </suggestionsForm.Form>
       }
-      {data?.suggestions && step === "suggestions" &&
+      {suggestionsForm.data?.suggestions !== null && step === "suggestions" &&
         (
           <div className="space-y-3 text-lg" ref={suggestions}>
             <ul className="container mx-auto w-full h-full relative">
-              {data?.suggestions?.map((suggestion: string) =>
+              {suggestionsForm.data?.suggestions?.map((suggestion: string) =>
                 <li key={suggestion}>
                   <div
                     className="border-white border-l gap-8 items-center w-full wrap py-4 px-6 h-full flex md:ml-5 ml-3">
@@ -805,7 +819,7 @@ export default function Index() {
           </div>
         )
       }
-      {data?.suggestions === null &&
+      {suggestionsForm.data?.suggestions === null && step === "suggestions" &&
         (
           <div className="text-lg space-y-1 font-light">
             <p>
@@ -818,13 +832,13 @@ export default function Index() {
           </div>
         )
       }
-      {!!data?.result && !data?.error &&
+      {!!mainForm.data?.result && !mainForm.data?.error &&
         <div className="flex flex-col md:flex-row gap-3 md:items-center items-start">
           <button
             aria-label="Copiar link al ejercicio"
             className="font-bold justify-center rounded-lg md:p-3 p-2 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
             onClick={async () => {
-              const link = `${url}?text=${encodeText(data?.text)}`;
+              const link = `${url}?text=${encodeText(mainForm.data?.text)}`;
               if ("clipboard" in navigator) {
                 await navigator.clipboard.writeText(link);
                 setHasLinkCopied(true);
