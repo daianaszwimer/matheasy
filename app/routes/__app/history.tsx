@@ -6,7 +6,7 @@ export function ErrorBoundary() {
   return (
     <div className="font-light text-xl flex flex-col items-center space-y-1">
       <p>¡Ups! Algo falló</p>
-      <p>No te preocupes, no es tu culpa!</p>
+      <p>No te preocupes, ¡no es tu culpa!</p>
       <Link to="/" className="underline" reloadDocument>Hacé click acá para volver al Inicio</Link>
     </div>
   );

@@ -5,7 +5,7 @@ export function ErrorBoundary() {
   return (
     <div className="font-light text-xl flex flex-col items-center space-y-1">
       <p>¡Ups! Algo falló</p>
-      <p>No te preocupes, no es tu culpa!</p>
+      <p>No te preocupes, ¡no es tu culpa!</p>
       <Link to="/" className="underline" reloadDocument>Hacé click acá para volver al Inicio</Link>
     </div>
   );
@@ -56,7 +56,7 @@ export default function FAQ() {
           {" Es por esto que tenés dos opciones:"}
         </p>
         <p>
-          Podés elegir entre ver <b className="font-bold italic">paso por paso</b>, haciendo click en el botón de "Primer/Siguiente/Último paso" o bien ver <b className="font-semibold italic">todos los pasos de una</b>, con el botón de "Saltear pasos". ¡Queremos que vos elijas cuál opción preferís!
+          Podés elegir entre ver <b className="font-bold italic">paso por paso</b>, haciendo click en el botón de "Siguiente paso" o bien ver <b className="font-semibold italic">todos los pasos de una</b>, con el botón de "Mostrar solución". ¡Queremos que vos elijas cuál opción preferís!
         </p>
       </>
     },
@@ -132,7 +132,7 @@ export default function FAQ() {
       answer: () => <>
         <p>
           {"¡No! "}
-          <span aria-hidden>🙅&zwj;♀️</span>
+          <span aria-hidden>&#128581;&#8205;&#9792;&#65039;</span>
           {" MathEasy no guarda ningún dato tuyo."}
         </p>
         <p>
@@ -147,7 +147,7 @@ export default function FAQ() {
           <p>
             {"¡Sí! Desde MathEasy creemos que el aprendizaje junto a otras personas es mucho más enriquecedor "}
             <span aria-hidden>&#129730;</span>
-            {". Por eso podrás hacer click en el botón \"¡Copiá el link al ejercicio y compartilo!\" para enviárselo a quien quieras."}
+            {". Por eso podrás hacer click en el botón \"¡Compartí el ejercicio!\" para enviárselo a quien quieras."}
           </p>
         </>
     },
