@@ -471,7 +471,7 @@ export default function Index() {
   const mainForm = useFetcher();
   const suggestionsForm = useFetcher();
   const isFunction = mainForm.data?.tag === "Function";
-  const offerSuggestions = step === "steps" && mainForm.data?.steps?.length && stepByStep === mainForm.data?.steps?.length - 1;
+  const offerSuggestions = (step === "steps" && mainForm.data?.steps?.length && stepByStep === mainForm.data?.steps?.length - 1) || (!mainForm.data?.steps && mainForm.data?.result);
   const suggestions = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
