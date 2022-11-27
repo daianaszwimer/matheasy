@@ -487,12 +487,6 @@ export default function Index() {
     setStep("suggestions");
   }, [suggestionsForm.data]);
 
-  const graph = useMemo(() => {
-    if (!calculator?.current) return;
-    // @ts-ignore
-    return window.Desmos.GraphingCalculator(calculator.current, { expressionsCollapsed: true, language: "es" });
-  }, [calculator, calculator?.current]);
-
   useEffect(() => {
     setText(defaultText || "");
   }, [defaultText]);
@@ -510,6 +504,7 @@ export default function Index() {
     location,
     mainForm.data
   ]);
+
   useEffect(() => {
     if (!hasLinkCopied) return;
     const timer = setTimeout(() => { setHasLinkCopied(false); }, 2000);
@@ -527,14 +522,16 @@ export default function Index() {
   useEffect(() => {
     setStep(isFunction ? "function" : "steps");
     setStepByStep(-1);
-  }, [mainForm.data, isFunction, calculator]);
+  }, [mainForm, isFunction, calculator]);
 
   useEffect(() => {
-    if ("function" !== step || !mainForm.data?.result || !graph) {
+    if (!isFunction || !mainForm.data?.result || !calculator?.current || mainForm.type !== "done") {
       return;
     }
+    // @ts-ignore
+    const graph = window.Desmos.GraphingCalculator(calculator.current, { expressionsCollapsed: true, language: "es" });
     graph.setExpression({ id: "graph", latex: `f(x) = ${mainForm.data.result}` });
-  }, [calculator, step, mainForm.data?.result, graph]);
+  }, [calculator, isFunction, mainForm.data?.result, mainForm.type]);
 
   useEffect(() => {
     if (mainForm.data?.error || !mainForm.data?.text) return;
@@ -687,179 +684,186 @@ export default function Index() {
           </p>
         </div>
       )}
-      {!!mainForm.data?.result && (
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-lg">
-          <p>
-            Expresión matemática:
-          </p>
-          <div className="font-medium bg-white rounded-lg shadow-xl md:py-3 px-4 py-2">
-            <p className="text-neutral-900" aria-hidden>
-              <Latex>
-                {isFunction ?
-                  `$f(x) = ${mainForm.data.result}$`
-                  : `$${mainForm.data.result}$`
-                }
-              </Latex>
-            </p>
-            <p className="sr-only">
-              {isFunction ?
-                `f(x) = ${mainForm.data.result}` : mainForm.data.result}
-            </p>
-          </div>
-        </div>
-      )}
-      {/* timeline */}
-      {["steps", "suggestions"].includes(step) && !isFunction &&
-        mainForm.data?.steps?.length && mainForm.data?.steps?.length > 0 &&
-        (
-          <div className="space-y-3">
-            <p className="text-lg">Resolución paso por paso</p>
-            <Link target="_blank" to="/faq#pasos" className="underline text-neutral-300">
-              ¿Necesitás ayuda?
-            </Link>
-            <ul className="container mx-auto w-full h-full relative">
-              {mainForm.data?.steps?.map((s: MathStep, index: number) =>
-                <li key={`${s.option} ${index}`}>
-                  <Step
-                    hide={stepByStep < index}
-                    order={index + 1}
-                    step={s}
-                    onClick={nextStep}
-                    isNext={stepByStep === (index - 1)}
-                    isLast={index === (mainForm.data?.steps?.length || 0) - 1}
-                    showAll={() => setStepByStep(
-                      (mainForm.data?.steps?.length || 0) - 1 || 0
-                    )}
-                  />
-                </li>
-              )}
-            </ul>
-          </div>
-        )
-      }
-      {/* Caso funciones */}
-      {["function", "suggestions"].includes(step) && isFunction &&
-        (
-          <>
-            <div ref={calculator} id="calculator" className="md:h-96 h-56" style={{ "width": "100%" }}></div>
-            <ul className="container mx-auto w-full h-full relative">
-              {mainForm.data?.steps?.map((s: MathStep, index: number) => {
-                return (
-                  <li key={`${s.option} ${index}`}>
-                    <FunctionStep order={index} step={s}/>
-                  </li>
-                );
-              })}
-            </ul>
-          </>
-        )
-      }
-      {mainForm.data?.steps === null &&
-        (
-          <div className="text-lg font-light">
+      {mainForm.type === "done" && <>
+        {!!mainForm.data?.result && (
+          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-lg">
             <p>
-              {mainForm.data?.result && mainForm.data?.tag ?
-                <StepsError type={mainForm.data.tag}/> : mainForm.data.error
-              }
+              Expresión matemática:
             </p>
-            <p>Podés resolver tus dudas leyendo{" "}
-              <Link target="_blank" to="/faq#tipo-enunciados" className="underline">
-                ejemplos de enunciados
-              </Link>
-            </p>
+            <div className="font-medium bg-white rounded-lg shadow-xl md:py-3 px-4 py-2">
+              <p className="text-neutral-900" aria-hidden>
+                <Latex>
+                  {isFunction ?
+                    `$f(x) = ${mainForm.data.result}$`
+                    : `$${mainForm.data.result}$`
+                  }
+                </Latex>
+              </p>
+              <p className="sr-only">
+                {isFunction ?
+                  `f(x) = ${mainForm.data.result}` : mainForm.data.result}
+              </p>
+            </div>
           </div>
-        )
-      }
-      {((isFunction || offerSuggestions) || step === "suggestions") &&
-        <suggestionsForm.Form className="mt-4" method="post">
-          <input type="hidden" name="action" value="suggestions" />
-          <input type="hidden" name="tag" value={mainForm.data?.tag} />
-          <input type="hidden" name="expression" value={mainForm.data?.result} />
-          <Button
-            disabled={suggestionsForm.state !== "idle"}
-            text={suggestionsForm.state !== "idle"
-              ? "Buscando..."
-              : "Buscar ejercicios similares"}
-            type="submit"
-          />
-        </suggestionsForm.Form>
-      }
-      {suggestionsForm.data?.suggestions !== null && step === "suggestions" &&
-        (
-          <div className="space-y-3 text-lg" ref={suggestions}>
-            <ul className="container mx-auto w-full h-full relative">
-              {suggestionsForm.data?.suggestions?.map((suggestion: string) =>
-                <li key={`${suggestion}-${new Date()}`}>
-                  <div
-                    className="border-white border-l gap-8 items-center w-full wrap py-4 px-6 h-full flex md:ml-5 ml-3">
-                    <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
-                      <p className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
-                        &#10140;
-                      </p>
-                    </div>
-                    <div className="flex text-base md:text-lg">
-                      <div className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
-                        <div className="leading-snug tracking-wide text-neutral-900">
-                          <p aria-hidden>
-                            <Latex>
-                              {`$${suggestion}$`}
-                            </Latex>
-                          </p>
-                          <p className="sr-only">
-                            {suggestion}
-                          </p>
+        )}
+        {/* timeline */}
+        {["steps", "suggestions"].includes(step) && !isFunction &&
+          mainForm.data?.steps?.length && mainForm.data?.steps?.length > 0 &&
+          (
+            <div className="space-y-3">
+              <p className="text-lg">Resolución paso por paso</p>
+              <Link target="_blank" to="/faq#pasos" className="underline text-neutral-300">
+                ¿Necesitás ayuda?
+              </Link>
+              <ul className="container mx-auto w-full h-full relative">
+                {mainForm.data?.steps?.map((s: MathStep, index: number) => (
+                  <li key={`${s.option} ${index}`}>
+                    <Step
+                      hide={stepByStep < index}
+                      order={index + 1}
+                      step={s}
+                      onClick={nextStep}
+                      isNext={stepByStep === (index - 1)}
+                      isLast={index === (mainForm.data?.steps?.length || 0) - 1}
+                      showAll={() => setStepByStep(
+                        (mainForm.data?.steps?.length || 0) - 1 || 0
+                      )}
+                    />
+                  </li>
+                )
+                )}
+              </ul>
+            </div>
+          )
+        }
+        {/* Caso funciones */}
+        {["function", "suggestions"].includes(step) && isFunction &&
+          (
+            <>
+              <div ref={calculator} id="calculator" className="md:h-96 h-56" style={{ "width": "100%" }}></div>
+              <ul className="container mx-auto w-full h-full relative">
+                {mainForm.data?.steps?.map((s: MathStep, index: number) => {
+                  return (
+                    <li key={`${s.option} ${index}`}>
+                      <FunctionStep order={index} step={s}/>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )
+        }
+        {mainForm.data?.steps === null &&
+          (
+            <div className="text-lg font-light">
+              <p>
+                {mainForm.data?.result && mainForm.data?.tag ?
+                  <StepsError type={mainForm.data.tag}/> : mainForm.data.error
+                }
+              </p>
+              <p>Podés resolver tus dudas leyendo{" "}
+                <Link target="_blank" to="/faq#tipo-enunciados" className="underline">
+                  ejemplos de enunciados
+                </Link>
+              </p>
+            </div>
+          )
+        }
+        {((isFunction || offerSuggestions) || step === "suggestions") &&
+          <suggestionsForm.Form className="mt-4" method="post">
+            <input type="hidden" name="action" value="suggestions"/>
+            <input type="hidden" name="tag" value={mainForm.data?.tag}/>
+            <input type="hidden" name="expression" value={mainForm.data?.result}/>
+            <Button
+              disabled={suggestionsForm.state !== "idle"}
+              text={suggestionsForm.state !== "idle"
+                ? "Buscando..."
+                : "Buscar ejercicios similares"}
+              type="submit"
+            />
+          </suggestionsForm.Form>
+        }
+        {suggestionsForm.data?.suggestions !== null && step === "suggestions" &&
+          (
+            <div className="space-y-3 text-lg" ref={suggestions}>
+              <ul className="container mx-auto w-full h-full relative">
+                {suggestionsForm.data?.suggestions?.map((suggestion: string) =>
+                  <li key={`${suggestion}-${new Date()}`}>
+                    <div
+                      className="border-white border-l gap-8 items-center w-full wrap py-4 px-6 h-full flex md:ml-5 ml-3">
+                      <div
+                        className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
+                        <p
+                          className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+                          &#10140;
+                        </p>
+                      </div>
+                      <div className="flex text-base md:text-lg">
+                        <div
+                          className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+                          <div className="leading-snug tracking-wide text-neutral-900">
+                            <p aria-hidden>
+                              <Latex>
+                                {`$${suggestion}$`}
+                              </Latex>
+                            </p>
+                            <p className="sr-only">
+                              {suggestion}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </li>
-              )}
-            </ul>
+                  </li>
+                )}
+              </ul>
+            </div>
+          )
+        }
+        {suggestionsForm.data?.suggestions === null && step === "suggestions" &&
+          (
+            <div className="text-lg space-y-1 font-light">
+              <p>
+                ¡Ups! No pude generar ejercicios similares{" "}
+                <span aria-hidden>&#128546;</span>
+              </p>
+              <suggestionsForm.Form className="mt-4" method="post">
+                <input type="hidden" name="action" value="suggestions"/>
+                <input type="hidden" name="tag" value={mainForm.data?.tag}/>
+                <input type="hidden" name="expression" value={mainForm.data?.result}/>
+                <button type="submit" disabled={suggestionsForm.state !== "idle"} className="underline">
+                  Reintentar
+                </button>
+              </suggestionsForm.Form>
+            </div>
+          )
+        }
+        {!!mainForm.data?.result && !mainForm.data?.error &&
+          <div className="flex flex-col md:flex-row gap-3 md:items-center items-start">
+            <button
+              aria-label="Copiar link al ejercicio"
+              className="font-bold justify-center rounded-lg md:p-3 p-2 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
+              onClick={async () => {
+                const link = `${url}?text=${encodeText(mainForm.data?.text)}`;
+                if ("clipboard" in navigator) {
+                  await navigator.clipboard.writeText(link);
+                  setHasLinkCopied(true);
+                } else {
+                  document.execCommand("copy", true, link);
+                  setHasLinkCopied(true);
+                }
+              }}
+            >
+              <img src={linkIcon} alt="" className="w-4"/>
+              <p aria-hidden>¡Compartí el ejercicio!</p>
+            </button>
+            <div
+              className={`bg-green-50 border-l-8 border-green-500 p-3 w-fit rounded-md transition-opacity ${hasLinkCopied ? "opacity-100" : "opacity-0 invisible"}`}>
+              <p className="text-green-900 text-sm font-medium">¡Link copiado!</p>
+            </div>
           </div>
-        )
-      }
-      {suggestionsForm.data?.suggestions === null && step === "suggestions" &&
-        (
-          <div className="text-lg space-y-1 font-light">
-            <p>
-              ¡Ups! No pude generar ejercicios similares{" "}
-              <span aria-hidden>&#128546;</span>
-            </p>
-            <suggestionsForm.Form className="mt-4" method="post">
-              <input type="hidden" name="action" value="suggestions" />
-              <input type="hidden" name="tag" value={mainForm.data?.tag} />
-              <input type="hidden" name="expression" value={mainForm.data?.result} />
-              <button type="submit" disabled={suggestionsForm.state !== "idle"} className="underline">
-                Reintentar
-              </button>
-            </suggestionsForm.Form>
-          </div>
-        )
-      }
-      {!!mainForm.data?.result && !mainForm.data?.error &&
-        <div className="flex flex-col md:flex-row gap-3 md:items-center items-start">
-          <button
-            aria-label="Copiar link al ejercicio"
-            className="font-bold justify-center rounded-lg md:p-3 p-2 bg-teal-600 hover:bg-teal-700 flex flex-row gap-2 items-center md:w-fit w-full"
-            onClick={async () => {
-              const link = `${url}?text=${encodeText(mainForm.data?.text)}`;
-              if ("clipboard" in navigator) {
-                await navigator.clipboard.writeText(link);
-                setHasLinkCopied(true);
-              } else {
-                document.execCommand("copy", true, link);
-                setHasLinkCopied(true);
-              }
-            }}
-          >
-            <img src={linkIcon} alt="" className="w-4"/>
-            <p aria-hidden>¡Compartí el ejercicio!</p>
-          </button>
-          <div className={`bg-green-50 border-l-8 border-green-500 p-3 w-fit rounded-md transition-opacity ${hasLinkCopied ? "opacity-100" : "opacity-0 invisible"}`}>
-            <p className="text-green-900 text-sm font-medium">¡Link copiado!</p>
-          </div>
-        </div>
-      }
+        }
+      </>}
     </>
   );
 }
