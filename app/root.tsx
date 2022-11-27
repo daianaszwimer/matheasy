@@ -19,8 +19,7 @@ export const meta: MetaFunction = () => ({
 export function links() {
   return [
     { rel: "stylesheet", href: styles },
-    { rel: "stylesheet", href: global },
-    { rel: "manifest", href: "/manifest.json" }
+    { rel: "stylesheet", href: global }
   ];
 };
 

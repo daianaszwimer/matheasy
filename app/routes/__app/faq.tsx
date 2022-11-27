@@ -92,24 +92,16 @@ export default function FAQ() {
           <p>
             {"También hay que tener cuidado en cómo se escriben algunas expresiones matemáticas para que pueda entenderlas:"}
           </p>
-          <ul className="list-['-']">
-            <li className="pl-1">
-              Para decir que una incógnita está siendo multiplicada{" "}
-              debemos escribir, por ejemplo, 2*x o x*2 pero no x2 o 2x.
-            </li>
-            <li className="pl-1">
-              Los símbolos permitidos son:
-              <ul className="list-[circle] pl-4">
-                <li>^ (potencia)</li>
-                <li>* (multiplicación)</li>
-                <li>/ (división)</li>
-                <li>+ (suma)</li>
-                <li>- (resta)</li>
-              </ul>
-              PD: todos estos símbolos y muchos más los encontrás{" "}
-              en el teclado que se muestra arriba del botón "Calcular"
-            </li>
+          Los símbolos permitidos son:
+          <ul className="list-[circle] pl-4">
+            <li>^ (potencia)</li>
+            <li>* (multiplicación)</li>
+            <li>/ (división)</li>
+            <li>+ (suma)</li>
+            <li>- (resta)</li>
           </ul>
+          Todos estos símbolos y muchos más los encontrás{" "}
+          en el teclado que se muestra arriba del botón "Calcular"
           <p>
             {"Por último, puede existir el caso en que MathEasy sí sepa de qué tema se trata el enunciado pero no pueda resolverlo "}
             <span aria-hidden>&#128532;</span>
