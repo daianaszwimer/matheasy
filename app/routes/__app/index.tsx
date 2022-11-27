@@ -787,35 +787,36 @@ export default function Index() {
           (
             <div className="space-y-3 text-lg" ref={suggestions}>
               <ul className="container mx-auto w-full h-full relative">
-                {suggestionsForm.data?.suggestions?.map((suggestion: string) =>
-                  <li key={suggestion}>
-                    <div
-                      className="border-white border-l gap-8 items-center w-full wrap py-4 px-6 h-full flex md:ml-5 ml-3">
+                {suggestionsForm.data?.suggestions?.
+                  slice(-3)?.map((suggestion: string) =>
+                    <li key={suggestion}>
                       <div
-                        className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
-                        <p
-                          className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
-                          &#10140;
-                        </p>
-                      </div>
-                      <div className="flex text-base md:text-lg">
+                        className="border-white border-l gap-8 items-center w-full wrap py-4 px-6 h-full flex md:ml-5 ml-3">
                         <div
-                          className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
-                          <div className="leading-snug tracking-wide text-neutral-900">
-                            <p aria-hidden>
-                              <Latex>
-                                {`$${suggestion}$`}
-                              </Latex>
-                            </p>
-                            <p className="sr-only">
-                              {suggestion}
-                            </p>
+                          className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
+                          <p
+                            className="mx-auto font-bold text-base md:text-lg text-neutral-900 md:w-8 md:h-8 w-7 h-7 flex items-center justify-center">
+                            &#10140;
+                          </p>
+                        </div>
+                        <div className="flex text-base md:text-lg">
+                          <div
+                            className="font-['computer'] flex-1 bg-white rounded-lg shadow-xl md:px-6 md:py-4 px-4 py-2">
+                            <div className="leading-snug tracking-wide text-neutral-900">
+                              <p aria-hidden>
+                                <Latex>
+                                  {`$${suggestion}$`}
+                                </Latex>
+                              </p>
+                              <p className="sr-only">
+                                {suggestion}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </li>
-                )}
+                    </li>
+                  )}
               </ul>
             </div>
           )
