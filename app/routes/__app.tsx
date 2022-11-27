@@ -1,5 +1,5 @@
 import icon from "~/assets/icon.png";
-import { NavLink, Outlet } from "@remix-run/react";
+import { NavLink, Outlet, useLocation } from "@remix-run/react";
 
 function NavItem({ to, text }:
  {to: string, text: string}) {
@@ -16,6 +16,8 @@ function NavItem({ to, text }:
 }
 
 export default function App() {
+  let location = useLocation();
+
   return (
     <div className="bg-gray-900 font-['Nunito'] text-white main-background bg-repeat overflow-hidden">
       <nav className="bg-slate-800">
@@ -26,6 +28,7 @@ export default function App() {
                 isActive ? "p-3.5 pb-3 border-b-2 border-white font-medium" : "my-0.5 py-3 px-3.5 transition-colors hover:bg-gray-700 rounded-md"
               }
               to="/"
+              reloadDocument={location.pathname === "/"}
             >
               <img width={28} src={icon} alt="Logo de MathEasy"/>
             </NavLink>
