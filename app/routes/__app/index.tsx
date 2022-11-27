@@ -788,7 +788,7 @@ export default function Index() {
             <div className="space-y-3 text-lg" ref={suggestions}>
               <ul className="container mx-auto w-full h-full relative">
                 {suggestionsForm.data?.suggestions?.map((suggestion: string) =>
-                  <li key={`${suggestion}-${new Date()}`}>
+                  <li key={suggestion}>
                     <div
                       className="border-white border-l gap-8 items-center w-full wrap py-4 px-6 h-full flex md:ml-5 ml-3">
                       <div
