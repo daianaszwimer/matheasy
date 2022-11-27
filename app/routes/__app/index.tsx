@@ -789,7 +789,7 @@ export default function Index() {
           <div className="space-y-3 text-lg" ref={suggestions}>
             <ul className="container mx-auto w-full h-full relative">
               {suggestionsForm.data?.suggestions?.map((suggestion: string) =>
-                <li key={suggestion}>
+                <li key={`${suggestion}-${new Date()}`}>
                   <div
                     className="border-white border-l gap-8 items-center w-full wrap py-4 px-6 h-full flex md:ml-5 ml-3">
                     <div className="z-10 flex items-center bg-white shadow-xl rounded-full absolute md:left-1 -left-[0.1rem]">
@@ -825,9 +825,14 @@ export default function Index() {
               ¡Ups! No pude generar ejercicios similares{" "}
               <span aria-hidden>&#128546;</span>
             </p>
-            <Link target="_blank" to="/faq" className="underline">
-              ¿Necesitás ayuda?
-            </Link>
+            <suggestionsForm.Form className="mt-4" method="post">
+              <input type="hidden" name="action" value="suggestions" />
+              <input type="hidden" name="tag" value={mainForm.data?.tag} />
+              <input type="hidden" name="expression" value={mainForm.data?.result} />
+              <button type="submit" disabled={suggestionsForm.state !== "idle"} className="underline">
+                Reintentar
+              </button>
+            </suggestionsForm.Form>
           </div>
         )
       }
